@@ -1,0 +1,222 @@
+#
+# CFTypes, e.g. CFString, CFInteger
+# needed to create unambiguous plists
+#
+# Author::    Christian Kruse (mailto:cjk@wwwtech.de)
+# Copyright:: Copyright (c) 2009
+# License::   Distributes under the same terms as Ruby
+
+require 'base64'
+
+# This class defines the base class for all CFType classes
+#
+class CFType
+  # value of the type
+  attr_accessor :value
+
+  # set internal value to parameter value by default
+  def initialize(value=nil)
+    @value = value
+  end
+
+  # convert type to XML
+  def to_xml
+  end
+
+  # convert type to binary
+  def to_binary(bplist)
+  end
+end
+
+# This class holds string values, both, UTF-8 and UTF-16BE
+# It will convert the value to UTF-16BE if necessary (i.e. if non-ascii char contained)
+class CFString < CFType
+  # convert to XML
+  def to_xml
+    n = LibXML::XML::Node.new('string')
+    n << LibXML::XML::Node.new_text(@value) unless @value.nil?
+    return n
+  end
+
+  # convert to binary
+  def to_binary(bplist)
+    return bplist.string_to_binary(@value);
+  end
+end
+
+# This class holds integer/fixnum values
+class CFInteger < CFType
+  # convert to XML
+  def to_xml
+    return LibXML::XML::Node.new('integer') << LibXML::XML::Node.new_text(@value.to_s)
+  end
+
+  # convert to binary
+  def to_binary(bplist)
+    return bplist.num_to_binary(self)
+  end
+end
+
+# This class holds float values
+class CFReal < CFType
+  # convert to XML
+  def to_xml
+    return LibXML::XML::Node.new('real') << LibXML::XML::Node.new_text(@value.to_s)
+  end
+
+  # convert to binary
+  def to_binary(bplist)
+    return bplist.num_to_binary(self)
+  end
+end
+
+# This class holds Time values. While Apple uses seconds since 2001,
+# the rest of the world uses seconds since 1970. So if you access value
+# directly, you get the Time class. If you access via get_value you either
+# geht the timestamp or the Apple timestamp
+class CFDate < CFType
+  # Apple timestamp format
+  TIMESTAMP_APPLE = 0
+  # UNIX timestamp format
+  TIMESTAMP_UNIX = 1
+  # difference between Apple and UNIX timestamps
+  DATE_DIFF_APPLE_UNIX = 978307200
+
+  # create a XML date strimg from a time object
+  def CFDate.date_string(val)
+    # 2009-05-13T20:23:43Z
+    val.getutc.strftime("%Y-%m-%dT%H:%M:%SZ")
+  end
+
+  # parse a XML date string
+  def CFDate.parse_date(val)
+    # 2009-05-13T20:23:43Z
+    val =~ %r{^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z$}
+    year,month,day,hour,min,sec = $1, $2, $3, $4, $5, $6
+    return Time.utc(year,month,day,hour,min,sec).getlocal
+  end
+
+  # set value to defined state
+  def initialize(value = nil,format=CFDate::TIMESTAMP_UNIX)
+    if(value.class == Time || value.nil?) then
+      @value = value.nil? ? Time.now : value
+    else
+      set_value(value,format)
+    end
+  end
+
+  # set value with timestamp, either Apple or UNIX
+  def set_value(value,format=CFDate::TIMESTAMP_UNIX)
+    if(format == CFDate::TIMESTAMP_UNIX) then
+      @value = Time.at(value)
+    else
+      @value = Time.at(value + CFDate::DATE_DIFF_APPLE_UNIX)
+    end
+  end
+
+  # get timestamp, either UNIX or Apple timestamp
+  def get_value(format=CFDate::TIMESTAMP_UNIX)
+    if(format == CFDate::TIMESTAMP_UNIX) then
+      return @value.to_i
+    else
+      return @value.to_f - CFDate::DATE_DIFF_APPLE_UNIX
+    end
+  end
+
+  # convert to XML
+  def to_xml
+    return LibXML::XML::Node.new('date') << LibXML::XML::Node.new_text(CFDate::date_string(@value))
+  end
+
+  # convert to binary
+  def to_binary(bplist)
+    return bplist.date_to_binary(@value)
+  end
+end
+
+# This class contains binary data values
+class CFData < CFType
+  # Base64 encoded data
+  DATA_BASE64 = 0
+  # Raw data
+  DATA_RAW = 1
+
+  # set value to defined state, either base64 encoded or raw
+  def initialize(value=nil,format=DATA_BASE64)
+    if(format == DATA_RAW) then
+      @value = Base64.encode64(value)
+    else
+      @value = value
+    end
+  end
+
+  # get base64 decoded value
+  def decoded_value
+    return Base64.decode64(@value)
+  end
+
+  # convert to XML
+  def to_xml
+    return LibXML::XML::Node.new('data') << LibXML::XML::Node.new_text(@value)
+  end
+
+  # convert to binary
+  def to_binary(bplist)
+    return bplist.data_to_binary(decoded_value())
+  end
+end
+
+# This class contains an array of values
+class CFArray < CFType
+  # convert to XML
+  def to_xml
+    n = LibXML::XML::Node.new('array')
+    @value.each do
+      |v|
+      n << v.to_xml
+    end
+
+    return n
+  end
+
+  # convert to binary
+  def to_binary(bplist)
+    return bplist.array_to_binary(self)
+  end
+end
+
+# this class contains a hash of values
+class CFDictionary < CFType
+  # convert to XML
+  def to_xml
+    n = LibXML::XML::Node.new('dict')
+    @value.each_pair do
+      |key,value|
+      k = LibXML::XML::Node.new('key') << LibXML::XML::Node.new_text(key)
+      n << k
+      n << value.to_xml
+    end
+
+    return n
+  end
+
+  # convert to binary
+  def to_binary(bplist)
+    return bplist.dict_to_binary(self)
+  end
+end
+
+# This class contains a boolean value
+class CFBoolean < CFType
+  # convert to XML
+  def to_xml
+    return LibXML::XML::Node.new(@value ? 'true' : 'false')
+  end
+
+  # convert to binary
+  def to_binary(bplist)
+    return bplist.bool_to_binary(@value);
+  end
+end
+
+# eof

@@ -1,9 +1,10 @@
+# -*- coding: utf-8 -*-
 #
 # CFFormatError implementation
 #
 # Author::    Christian Kruse (mailto:cjk@wwwtech.de)
-# Copyright:: Copyright (c) 2009
-# License::   Distributes under the same terms as Ruby
+# Copyright:: Copyright (c) 2010
+# License::   MIT License
 
 
 # Exception thrown when format errors occur

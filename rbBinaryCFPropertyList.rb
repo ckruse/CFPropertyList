@@ -1,4 +1,11 @@
 # -*- coding: utf-8 -*-
+#
+# CFPropertyList implementation
+# parser class to read, manipulate and write binary property list files (plist(5)) as defined by Apple
+#
+# Author::    Christian Kruse (mailto:cjk@wwwtech.de)
+# Copyright:: Copyright (c) 2010
+# License::   Distributes under the same terms as Ruby
 
 module CFPropertyList
   class Binary
@@ -106,6 +113,7 @@ module CFPropertyList
       return binary_str
     end
 
+    protected
 
     # read a „null” type (i.e. null byte, marker byte, bool value)
     def read_binary_null_type(length)

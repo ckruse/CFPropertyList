@@ -1,6 +1,6 @@
-# -*- config: utf-8 -*-
+# -*- coding: utf-8 -*-
 # CFPropertyList implementation
-# class to read, manipulate and write XML property list files (plist(5)) as defined by Apple
+# parser class to read, manipulate and write XML property list files (plist(5)) as defined by Apple
 #
 # Author::    Christian Kruse (mailto:cjk@wwwtech.de)
 # Copyright:: Copyright (c) 2010
@@ -51,6 +51,8 @@ module CFPropertyList
 
       return str1
     end
+
+    protected
 
     # get the value of a DOM node
     def get_value(n)

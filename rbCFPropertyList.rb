@@ -52,10 +52,11 @@ module CFPropertyList
   end
 end
 
-require 'rbCFFormatError.rb'
-require 'rbCFTypes.rb'
-require 'rbXMLCFPropertyList.rb'
-require 'rbBinaryCFPropertyList.rb'
+dirname = File.dirname(__FILE__)
+require dirname + '/rbCFFormatError.rb'
+require dirname + '/rbCFTypes.rb'
+require dirname + '/rbXMLCFPropertyList.rb'
+require dirname + '/rbBinaryCFPropertyList.rb'
 
 require 'iconv' unless "".respond_to?("encode")
 

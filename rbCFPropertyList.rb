@@ -36,6 +36,7 @@
 
 require 'libxml'
 require 'kconv'
+require 'date'
 
 module CFPropertyList
   # interface class for PList parsers
@@ -92,6 +93,7 @@ module CFPropertyList
       hsh = Hash.new
       object.each_pair do
         |k,v|
+        k = k.to_s if k.is_a?(Symbol)
         hsh[k] = CFPropertyList.guess(v)
       end
 
@@ -100,7 +102,7 @@ module CFPropertyList
   end
 
   # Converts a CFType hiercharchy to native Ruby types
-  def native_types(object)
+  def native_types(object,keys_as_symbols=false)
     return if object.nil?
 
     if(object.is_a?(CFDate) || object.is_a?(CFString) || object.is_a?(CFInteger) || object.is_a?(CFReal) || object.is_a?(CFBoolean)) then
@@ -119,6 +121,7 @@ module CFPropertyList
       hsh = {}
       object.value.each_pair do
         |k,v|
+        k = k.to_sym if keys_as_symbols
         hsh[k] = CFPropertyList.native_types(v)
       end
 

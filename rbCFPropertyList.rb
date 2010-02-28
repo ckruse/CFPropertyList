@@ -17,8 +17,8 @@
 #     }
 #   }
 #
-#   # create CFPropertyList object
-#   plist = CFPropertyList.new
+#   # create CFPropertyList::List object
+#   plist = CFPropertyList::List.new
 #
 #   # call CFPropertyList.guess() to create corresponding CFType values
 #   plist.value = CFPropertyList.guess(data)
@@ -27,7 +27,7 @@
 #   plist.save("example.plist",CFPropertyList::FORMAT_BINARY)
 #
 #   # … later, read it again
-#   plist = CFPropertyList.new("example.plist")
+#   plist = CFPropertyList::List.new("example.plist")
 #   data = CFPropertyList.native_types(plist.value)
 #
 # Author::    Christian Kruse (mailto:cjk@wwwtech.de)
@@ -60,6 +60,73 @@ require 'rbBinaryCFPropertyList.rb'
 require 'iconv' unless "".respond_to?("encode")
 
 module CFPropertyList
+  # Create CFType hierarchy by guessing the correct CFType, e.g.
+  #
+  #  x = {
+  #    'a' => ['b','c','d']
+  #  }
+  #  cftypes = CFPropertyList.guess(x)
+  def guess(object)
+    return if object.nil?
+
+    if(object.is_a?(Fixnum) || object.is_a?(Integer)) then
+      return CFInteger.new(object)
+    elsif(object.is_a?(Float)) then
+      return CFReal.new(object)
+    elsif(object.is_a?(TrueClass) || object.is_a?(FalseClass)) then
+      return CFBoolean.new(object)
+    elsif(object.is_a?(String)) then
+      return CFString.new(object)
+    elsif(object.is_a?(Time) || object.is_a?(DateTime)) then
+      return CFDate.new(object)
+    elsif(object.is_a?(Array)) then
+      ary = Array.new
+      object.each do
+        |o|
+        ary.push CFPropertyList.guess(o)
+      end
+
+      return CFArray.new(ary)
+    elsif(object.is_a?(Hash)) then
+      hsh = Hash.new
+      object.each_pair do
+        |k,v|
+        hsh[k] = CFPropertyList.guess(v)
+      end
+
+      return CFDictionary.new(hsh)
+    end
+  end
+
+  # Converts a CFType hiercharchy to native Ruby types
+  def native_types(object)
+    return if object.nil?
+
+    if(object.is_a?(CFDate) || object.is_a?(CFString) || object.is_a?(CFInteger) || object.is_a?(CFReal) || object.is_a?(CFBoolean)) then
+      return object.value
+    elsif(object.is_a?(CFData)) then
+      return object.decoded_value
+    elsif(object.is_a?(CFArray)) then
+      ary = []
+      object.value.each do
+        |v|
+        ary.push CFPropertyList.native_types(v)
+      end
+
+      return ary
+    elsif(object.is_a?(CFDictionary)) then
+      hsh = {}
+      object.value.each_pair do
+        |k,v|
+        hsh[k] = CFPropertyList.native_types(v)
+      end
+
+      return hsh
+    end
+  end
+
+  module_function :guess, :native_types
+
   class List
     # Format constant for binary format
     FORMAT_BINARY = 1
@@ -86,71 +153,6 @@ module CFPropertyList
 
       load(@filename) unless @filename.nil?
       load_str(@data) unless @data.nil?
-    end
-
-    # Create CFType hierarchy by guessing the correct CFType, e.g.
-    #
-    #  x = {
-    #    'a' => ['b','c','d']
-    #  }
-    #  cftypes = List.guess(x)
-    def List.guess(object)
-      return if object.nil?
-
-      if(object.is_a?(Fixnum) || object.is_a?(Integer)) then
-        return CFInteger.new(object)
-      elsif(object.is_a?(Float)) then
-        return CFReal.new(object)
-      elsif(object.is_a?(TrueClass) || object.is_a?(FalseClass)) then
-        return CFBoolean.new(object)
-      elsif(object.is_a?(String)) then
-        return CFString.new(object)
-      elsif(object.is_a?(Time) || object.is_a?(DateTime)) then
-        return CFDate.new(object)
-      elsif(object.is_a?(Array)) then
-        ary = Array.new
-        object.each do
-          |o|
-          ary.push List.guess(o)
-        end
-
-        return CFArray.new(ary)
-      elsif(object.is_a?(Hash)) then
-        hsh = Hash.new
-        object.each_pair do
-          |k,v|
-          hsh[k] = List.guess(v)
-        end
-
-        return CFDictionary.new(hsh)
-      end
-    end
-
-    # Converts a CFType hiercharchy to native Ruby types
-    def List.native_types(object)
-      return if object.nil?
-
-      if(object.is_a?(CFDate) || object.is_a?(CFString) || object.is_a?(CFInteger) || object.is_a?(CFReal) || object.is_a?(CFBoolean)) then
-        return object.value
-      elsif(object.is_a?(CFData)) then
-        return object.decoded_value
-      elsif(object.is_a?(CFArray)) then
-        ary = []
-        object.value.each do
-          |v|
-          ary.push List.native_types(v)
-        end
-
-        return ary
-      elsif(object.is_a?(CFDictionary)) then
-        hsh = {}
-        object.value.each_pair do
-          |k,v|
-          hsh[k] = List.native_types(v)
-        end
-
-        return hsh
-      end
     end
 
     # Load an XML PropertyList

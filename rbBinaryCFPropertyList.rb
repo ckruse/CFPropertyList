@@ -113,8 +113,6 @@ module CFPropertyList
       return binary_str
     end
 
-    protected
-
     # read a „null” type (i.e. null byte, marker byte, bool value)
     def read_binary_null_type(length)
       case length
@@ -126,6 +124,7 @@ module CFPropertyList
 
       raise CFFormatError.new("unknown null type: #{length}")
     end
+    protected :read_binary_null_type
 
     # read a binary int value
     def read_binary_int(fname,fd,length)
@@ -153,6 +152,7 @@ module CFPropertyList
 
       return new CFInteger(val);
     end
+    protected :read_binary_int
 
     # read a binary real value
     def read_binary_real(fname,fd,length)
@@ -177,6 +177,7 @@ module CFPropertyList
 
       return CFReal.new(val)
     end
+    protected :read_binary_real
 
     # read a binary date value
     def read_binary_date(fname,fd,length)
@@ -201,6 +202,7 @@ module CFPropertyList
 
       return CFDate.new(val,CFDate::TIMESTAMP_APPLE)
     end
+    protected :read_binary_date
 
     # Read a binary data value
     def read_binary_data(fname,fd,length)
@@ -208,7 +210,7 @@ module CFPropertyList
       buff = fd.read(length) if length > 0
       return CFData.new(buff,CFData::DATA_RAW)
     end
-
+    protected :read_binary_data
 
     # Read a binary string value
     def read_binary_string(fname,fd,length)
@@ -218,6 +220,7 @@ module CFPropertyList
       @unique_table[buff] = true unless @unique_table.has_key?(buff)
       return CFString.new(buff)
     end
+    protected :read_binary_string
 
     # Convert the given string from one charset to another
     def Binary.charset_convert(str,from,to="UTF-8")
@@ -243,6 +246,7 @@ module CFPropertyList
       @unique_table[buff] = true unless @unique_table.has_key?(buff)
       return CFString.new(Binary.charset_convert(buff,"UTF-16BE","UTF-8"))
     end
+    protected :read_binary_unicode_string
 
     # Read an binary array value, including contained objects
     def read_binary_array(fname,fd,length)
@@ -262,6 +266,7 @@ module CFPropertyList
 
       return CFArray.new(ary)
     end
+    protected :read_binary_array
 
     # Read a dictionary value, including contained objects
     def read_binary_dict(fname,fd,length)
@@ -286,6 +291,7 @@ module CFPropertyList
 
       return CFDictionary.new(dict)
     end
+    protected :read_binary_dict
 
     # Read an object type byte, decode it and delegate to the correct reader function
     def read_binary_object(fname,fd)
@@ -327,6 +333,7 @@ module CFPropertyList
 
       return retval
     end
+    protected :read_binary_object
 
     # Read an object type byte at position $pos, decode it and delegate to the correct reader function
     def read_binary_object_at(fname,fd,pos)
@@ -334,6 +341,7 @@ module CFPropertyList
       fd.seek(position,IO::SEEK_SET)
       return read_binary_object(fname,fd)
     end
+    protected :read_binary_object_at
 
     # calculate the bytes needed for a size integer value
     def Binary.bytes_size_int(int)
@@ -484,6 +492,7 @@ module CFPropertyList
 
       @unique_table[val] += 1
     end
+    protected :unique_and_count_values
 
     # Counts the number of bytes the string will have when coded; utf-16be if non-ascii characters are present.
     def Binary.binary_strlen(val)
@@ -654,7 +663,6 @@ module CFPropertyList
       @object_table[saved_object_count] = bdata
       return saved_object_count
     end
-
   end
 end
 

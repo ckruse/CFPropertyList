@@ -1,0 +1,34 @@
+CFPropertyList implementation
+class to read, manipulate and write both XML and binary property list
+files (plist(5)) as defined by Apple
+
+== Example
+
+  # create a arbitrary data structure of basic data types
+  data = {
+    'name' => 'John Doe',
+    'missing' => true,
+    'last_seen' => Time.now,
+    'friends' => ['Jane Doe','Julian Doe']
+    'likes' => {
+      'me' => false
+    }
+  }
+
+  # create CFPropertyList::List object
+  plist = CFPropertyList::List.new
+
+  # call CFPropertyList.guess() to create corresponding CFType values
+  plist.value = CFPropertyList.guess(data)
+
+  # write plist to file
+  plist.save("example.plist",CFPropertyList::FORMAT_BINARY)
+
+  # … later, read it again
+  plist = CFPropertyList::List.new("example.plist")
+  data = CFPropertyList.native_types(plist.value)
+
+Author::    Christian Kruse (mailto:cjk@wwwtech.de)
+Copyright:: Copyright (c) 2010
+License::   Distributes under the same terms as Ruby
+

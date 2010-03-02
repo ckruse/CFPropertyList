@@ -150,7 +150,7 @@ module CFPropertyList
         val = hiword << 32 | loword
       end
 
-      return new CFInteger(val);
+      return CFInteger.new(val);
     end
     protected :read_binary_int
 
@@ -395,11 +395,11 @@ module CFPropertyList
       intbytes = ""
 
       if(int > 0xFFFF) then
-        intbytes = "\x12".pack("N", int) # 4 byte integer
+        intbytes = "\x12"+[int].pack("N") # 4 byte integer
       elsif(int > 0xFF) then
-        intbytes = "\x11".pack("n", int) # 2 byte integer
+        intbytes = "\x11"+[int].pack("n") # 2 byte integer
       else
-        intbytes = "\x10".pack("C", int) # 8 byte integer
+        intbytes = "\x10"+[int].pack("C") # 8 byte integer
       end
 
       return intbytes;

@@ -11,7 +11,7 @@
 #     'name' => 'John Doe',
 #     'missing' => true,
 #     'last_seen' => Time.now,
-#     'friends' => ['Jane Doe','Julian Doe']
+#     'friends' => ['Jane Doe','Julian Doe'],
 #     'likes' => {
 #       'me' => false
 #     }
@@ -24,7 +24,7 @@
 #   plist.value = CFPropertyList.guess(data)
 #
 #   # write plist to file
-#   plist.save("example.plist",CFPropertyList::FORMAT_BINARY)
+#   plist.save("example.plist", CFPropertyList::List::FORMAT_BINARY)
 #
 #   # … later, read it again
 #   plist = CFPropertyList::List.new({:file => "example.plist"})

@@ -21,6 +21,7 @@
 #   plist = CFPropertyList::List.new
 #
 #   # call CFPropertyList.guess() to create corresponding CFType values
+#   # pass in optional :convert_unknown_to_string => true to convert things like symbols into strings.
 #   plist.value = CFPropertyList.guess(data)
 #
 #   # write plist to file
@@ -68,7 +69,7 @@ module CFPropertyList
   #    'a' => ['b','c','d']
   #  }
   #  cftypes = CFPropertyList.guess(x)
-  def guess(object)
+  def guess(object, options = {})
     return if object.nil?
 
     if(object.is_a?(Fixnum) || object.is_a?(Integer)) then
@@ -81,11 +82,13 @@ module CFPropertyList
       return CFString.new(object)
     elsif(object.is_a?(Time) || object.is_a?(DateTime)) then
       return CFDate.new(object)
+    elsif(object.is_a?(IO)) then
+      return CFData.new(object.read, CFData::DATA_RAW)
     elsif(object.is_a?(Array)) then
       ary = Array.new
       object.each do
         |o|
-        ary.push CFPropertyList.guess(o)
+        ary.push CFPropertyList.guess(o, options)
       end
 
       return CFArray.new(ary)
@@ -94,10 +97,12 @@ module CFPropertyList
       object.each_pair do
         |k,v|
         k = k.to_s if k.is_a?(Symbol)
-        hsh[k] = CFPropertyList.guess(v)
+        hsh[k] = CFPropertyList.guess(v, options)
       end
 
       return CFDictionary.new(hsh)
+    elsif options[:convert_unknown_to_string]
+      return CFString.new(object.to_s)
     end
   end
 

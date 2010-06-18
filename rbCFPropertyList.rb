@@ -105,11 +105,10 @@ module CFPropertyList
       end
 
       return CFDictionary.new(hsh)
-    elsif options[:convert_unknown_to_string]
-      return CFString.new(object.to_s)
-    elsif options[:converter_method]
-      puts "conv meth called"
+    elsif options[:converter_method] and object.respond_to?(options[:converter_method]) then
       return CFPropertyList.guess(object.send(options[:converter_method]))
+    elsif options[:convert_unknown_to_string] then
+      return CFString.new(object.to_s)
     else
       raise CFTypeError.new("Unknown class #{object.class.to_s}! Try using :convert_unknown_to_string if you want to use unknown object types!")
     end

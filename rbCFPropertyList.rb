@@ -77,7 +77,7 @@ module CFPropertyList
   def guess(object, options = {})
     if(object.is_a?(Fixnum) || object.is_a?(Integer)) then
       return CFInteger.new(object)
-    elsif(object.is_a?(Float)) then
+    elsif(object.is_a?(Float) || object.is_a?(BigDecimal)) then
       return CFReal.new(object)
     elsif(object.is_a?(TrueClass) || object.is_a?(FalseClass)) then
       return CFBoolean.new(object)

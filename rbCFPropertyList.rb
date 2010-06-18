@@ -77,7 +77,7 @@ module CFPropertyList
   def guess(object, options = {})
     if(object.is_a?(Fixnum) || object.is_a?(Integer)) then
       return CFInteger.new(object)
-    elsif(object.is_a?(Float) || object.is_a?(BigDecimal)) then
+    elsif(object.is_a?(Float) || (Object.const_defined?('BigDecimal') and object.is_a?(BigDecimal))) then
       return CFReal.new(object)
     elsif(object.is_a?(TrueClass) || object.is_a?(FalseClass)) then
       return CFBoolean.new(object)
@@ -287,6 +287,26 @@ module CFPropertyList
       opts[:root] = @value
       return prsr.to_str(opts)
     end
+  end
+end
+
+class Array
+  def to_plist(options={})
+    options[:plist_format] ||= CFPropertyList::List::FORMAT_BINARY
+
+    plist = CFPropertyList::List.new
+    plist.value = CFPropertyList.guess(self, options)
+    plist.to_str(options[:plist_format])
+  end
+end
+
+class Hash
+  def to_plist(options={})
+    options[:plist_format] ||= CFPropertyList::List::FORMAT_BINARY
+
+    plist = CFPropertyList::List.new
+    plist.value = CFPropertyList.guess(self, options)
+    plist.to_str(options[:plist_format])
   end
 end
 

@@ -55,7 +55,7 @@ module CFPropertyList
 end
 
 dirname = File.dirname(__FILE__)
-require dirname + '/rbCFFormatError.rb'
+require dirname + '/rbCFPlistError.rb'
 require dirname + '/rbCFTypes.rb'
 require dirname + '/rbXMLCFPropertyList.rb'
 require dirname + '/rbBinaryCFPropertyList.rb'
@@ -70,8 +70,6 @@ module CFPropertyList
   #  }
   #  cftypes = CFPropertyList.guess(x)
   def guess(object, options = {})
-    return if object.nil?
-
     if(object.is_a?(Fixnum) || object.is_a?(Integer)) then
       return CFInteger.new(object)
     elsif(object.is_a?(Float)) then
@@ -103,6 +101,8 @@ module CFPropertyList
       return CFDictionary.new(hsh)
     elsif options[:convert_unknown_to_string]
       return CFString.new(object.to_s)
+    else
+      raise CFTypeError.new("Unknown class #{object.class.to_s}! Try using :convert_unknown_to_string if you want to use unknown object types!")
     end
   end
 

@@ -72,6 +72,7 @@ module CFPropertyList
         if node.children? then
           node.children.each do
             |n|
+            next if n.name != 'key' and key.nil? # avoid a bug of libxml
 
             if n.name == "key" then
               key = get_value(n)

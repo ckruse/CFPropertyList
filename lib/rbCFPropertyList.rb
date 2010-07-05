@@ -144,6 +144,7 @@ module CFPropertyList
 
   module_function :guess, :native_types
 
+  # Class representing a CFPropertyList. Instanciate with #new
   class List
     # Format constant for binary format
     FORMAT_BINARY = 1
@@ -163,6 +164,13 @@ module CFPropertyList
     # the root value in the plist file
     attr_accessor :value
 
+    # initialize a new CFPropertyList, arguments are:
+    #
+    # :file:: Parse a file
+    # :format:: Format is one of FORMAT_BINARY or FORMAT_XML. Defaults to FORMAT_AUTO
+    # :data:: Parse a string
+    #
+    # All arguments are optional
     def initialize(opts={})
       @filename = opts[:file]
       @format = opts[:format] || FORMAT_AUTO
@@ -294,6 +302,7 @@ module CFPropertyList
 end
 
 class Array
+  # convert an array to plist format
   def to_plist(options={})
     options[:plist_format] ||= CFPropertyList::List::FORMAT_BINARY
 
@@ -304,6 +313,7 @@ class Array
 end
 
 class Hash
+  # convert a hash to plist format
   def to_plist(options={})
     options[:plist_format] ||= CFPropertyList::List::FORMAT_BINARY
 

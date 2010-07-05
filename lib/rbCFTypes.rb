@@ -5,7 +5,7 @@
 #
 # Author::    Christian Kruse (mailto:cjk@wwwtech.de)
 # Copyright:: Copyright (c) 2009
-# License::   Distributes under the same terms as Ruby
+# License::   MIT License
 
 require 'base64'
 

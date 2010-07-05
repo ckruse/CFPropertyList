@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
 #
-# CFFormatError implementation
+# Exceptions used:
+# CFPlistError:: General base exception
+# CFFormatError:: Format error
+# CFTypeError:: Type error
+#
+# Easy and simple :-)
 #
 # Author::    Christian Kruse (mailto:cjk@wwwtech.de)
 # Copyright:: Copyright (c) 2010

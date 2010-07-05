@@ -1,10 +1,4 @@
 # -*- coding: utf-8 -*-
-# CFPropertyList implementation
-# parser class to read, manipulate and write XML property list files (plist(5)) as defined by Apple
-#
-# Author::    Christian Kruse (mailto:cjk@wwwtech.de)
-# Copyright:: Copyright (c) 2010
-# License::   Distributes under the same terms as Ruby
 
 module CFPropertyList
   # XML parser

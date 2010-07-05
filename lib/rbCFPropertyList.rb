@@ -1,10 +1,18 @@
 # -*- coding: utf-8 -*-
+
+require 'libxml'
+require 'kconv'
+require 'date'
+
 #
 # CFPropertyList implementation
+#
 # class to read, manipulate and write both XML and binary property list
-# files (plist(5)) as defined by Apple
+# files (plist(5)) as defined by Apple. Have a look at CFPropertyList::List
+# for more documentation.
 #
 # == Example
+#   require 'cfpropertylist'
 #
 #   # create a arbitrary data structure of basic data types
 #   data = {
@@ -33,12 +41,7 @@
 #
 # Author::    Christian Kruse (mailto:cjk@wwwtech.de)
 # Copyright:: Copyright (c) 2010
-# License::   Distributes under the same terms as Ruby
-
-require 'libxml'
-require 'kconv'
-require 'date'
-
+# License::   MIT License
 module CFPropertyList
   # interface class for PList parsers
   class ParserInterface

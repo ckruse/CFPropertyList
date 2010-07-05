@@ -1,5 +1,7 @@
 require 'rubygems'
+
 require 'rake/gempackagetask'
+require 'rake/rdoctask'
 
 spec = Gem::Specification.new do |s| 
   s.name = "CFPropertyList"
@@ -20,7 +22,17 @@ spec = Gem::Specification.new do |s|
   s.add_dependency("libxml-ruby", ">= 1.1.0")
   s.add_dependency("rake",">=0.7.0")
 end
- 
+
+desc 'Generate RDoc documentation for the CFPropertyList module.'
+Rake::RDocTask.new do |rdoc|
+  files = ['README', 'LICENSE', 'lib/*.rb']
+  rdoc.rdoc_files.add(files)
+  rdoc.main = 'CFPropertyList'
+  rdoc.title = 'CFPropertyList RDoc'
+  rdoc.rdoc_dir = 'doc'
+  rdoc.options << '--line-numbers' << '--inline-source'
+end
+
 Rake::GemPackageTask.new(spec) do |pkg| 
   pkg.need_tar = true 
 end

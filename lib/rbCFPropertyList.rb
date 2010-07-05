@@ -71,10 +71,10 @@ module CFPropertyList
   #  cftypes = CFPropertyList.guess(x)
   #
   # pass optional options hash. Only possible value actually:
-  # :convert_unknown_to_string => true
-  # :converter_method => :method_name
+  # +convert_unknown_to_string+::   Convert unknown objects to string calling to_str()
+  # +converter_method+::    Convert unknown objects to known objects calling +method_name+
   #
-  # cftypes = CFPropertyList.guess(x,:convert_unknown_to_string => true)
+  #  cftypes = CFPropertyList.guess(x,:convert_unknown_to_string => true,:converter_method => :to_hash)
   def guess(object, options = {})
     if(object.is_a?(Fixnum) || object.is_a?(Integer)) then
       return CFInteger.new(object)

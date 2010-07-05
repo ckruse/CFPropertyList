@@ -342,7 +342,7 @@ module CFPropertyList
       nbytes = 0
 
       nbytes += 2 if int > 0xE # 2 bytes int
-      nbytes += 2 if int > 0xFF # 3 bytes int
+      nbytes += 1 if int > 0xFF # 3 bytes int
       nbytes += 2 if int > 0xFFFF # 5 bytes int
 
       return nbytes

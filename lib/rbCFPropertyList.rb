@@ -65,6 +65,15 @@ require dirname + '/rbBinaryCFPropertyList.rb'
 
 require 'iconv' unless "".respond_to?("encode")
 
+class String
+  unless("".respond_to?(:bytesize)) then
+    def bytesize
+      self.length
+    end
+  end
+end
+
+
 module CFPropertyList
   # Create CFType hierarchy by guessing the correct CFType, e.g.
   #
@@ -87,7 +96,7 @@ module CFPropertyList
       return CFBoolean.new(object)
     elsif(object.is_a?(String)) then
       return CFString.new(object)
-    elsif(object.is_a?(Time) || object.is_a?(DateTime)) then
+    elsif(object.is_a?(Time) || object.is_a?(DateTime) || object.is_a?(Date)) then
       return CFDate.new(object)
     elsif(object.is_a?(IO)) then
       return CFData.new(object.read, CFData::DATA_RAW)

@@ -44,7 +44,7 @@ module CFPropertyList
       formats = ["","C*","n*","(H6)*","N*"]
       @offsets = coded_offset_table.unpack(formats[offset_size])
       if(offset_size == 3) then
-        0.upto(@offsets.count-1) { |i| @offsets[i] = @offsets[i].to_i(16) }
+        0.upto(@offsets.size-1) { |i| @offsets[i] = @offsets[i].to_i(16) }
       end
 
       @object_ref_size = object_ref_size
@@ -73,7 +73,7 @@ module CFPropertyList
       binary_str = "bplist00"
       unique_and_count_values(opts[:root])
 
-      @count_objects += @unique_table.count
+      @count_objects += @unique_table.size
       @object_ref_size = Binary.bytes_needed(@count_objects)
 
       file_size = @string_size + @int_size + @misc_size + @object_refs * @object_ref_size + 40
@@ -89,7 +89,7 @@ module CFPropertyList
       object_offset = 8
       offsets = []
 
-      0.upto(@object_table.count-1) do |i|
+      0.upto(@object_table.size-1) do |i|
         binary_str += @object_table[i]
         offsets[i] = object_offset
         object_offset += @object_table[i].bytesize
@@ -627,7 +627,7 @@ module CFPropertyList
       saved_object_count = @written_object_count
       @written_object_count += 1
 
-      bdata = Binary.type_bytes("a", val.value.count) # a is 1010, type indicator for arrays
+      bdata = Binary.type_bytes("a", val.value.size) # a is 1010, type indicator for arrays
 
       val.value.each do |v|
         bdata += Binary.pack_it_with_size(@object_ref_size,  v.to_binary(self));
@@ -642,7 +642,7 @@ module CFPropertyList
       saved_object_count = @written_object_count
       @written_object_count += 1
 
-      bdata = Binary.type_bytes("d",val.value.count) # d=1101, type indicator for dictionary
+      bdata = Binary.type_bytes("d",val.value.size) # d=1101, type indicator for dictionary
 
       val.value.each_key do |k|
         str = CFString.new(k)

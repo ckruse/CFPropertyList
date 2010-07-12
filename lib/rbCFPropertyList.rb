@@ -36,7 +36,7 @@ require 'date'
 #   plist.save("example.plist", CFPropertyList::List::FORMAT_BINARY)
 #
 #   # … later, read it again
-#   plist = CFPropertyList::List.new({:file => "example.plist"})
+#   plist = CFPropertyList::List.new(:file => "example.plist")
 #   data = CFPropertyList.native_types(plist.value)
 #
 # Author::    Christian Kruse (mailto:cjk@wwwtech.de)

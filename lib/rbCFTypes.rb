@@ -157,20 +157,28 @@ module CFPropertyList
     # set value to defined state, either base64 encoded or raw
     def initialize(value=nil,format=DATA_BASE64)
       if(format == DATA_RAW) then
-        @value = Base64.encode64(value)
+        @raw_value = value
+        @raw_value.blob = true
       else
         @value = value
       end
     end
 
+    # get base64 encoded value
+    def encoded_value
+      @value ||= Base64.encode64(@raw_value)
+    end
+
     # get base64 decoded value
     def decoded_value
-      return Base64.decode64(@value)
+      @raw_value ||= String.new(Base64.decode64(@value))
+      @raw_value.blob = true
+      @raw_value
     end
 
     # convert to XML
     def to_xml
-      return LibXML::XML::Node.new('data') << LibXML::XML::Node.new_text(@value)
+      return LibXML::XML::Node.new('data') << LibXML::XML::Node.new_text(encoded_value())
     end
 
     # convert to binary

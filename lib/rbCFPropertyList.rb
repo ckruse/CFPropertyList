@@ -107,11 +107,9 @@ module CFPropertyList
     elsif(object.is_a?(TrueClass) || object.is_a?(FalseClass)) then
       return CFBoolean.new(object)
     elsif(object.is_a?(String)) then
-      return CFString.new(object)
+      return object.blob? ? CFData.new(object, CFData::DATA_RAW) : CFString.new(object)
     elsif(object.is_a?(Time) || object.is_a?(DateTime) || object.is_a?(Date)) then
       return CFDate.new(object)
-    elsif(object.is_a?(IO)) then
-      return CFData.new(object.read, CFData::DATA_RAW)
     elsif(object.is_a?(Array)) then
       ary = Array.new
       object.each do

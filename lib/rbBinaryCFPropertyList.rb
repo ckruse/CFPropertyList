@@ -472,7 +472,7 @@ module CFPropertyList
       elsif(value.is_a?(CFData)) then
         val = value.decoded_value
         @int_size += Binary.bytes_size_int(val.length)
-        @misc_size += val.length
+        @misc_size += val.length + 1
         @count_objects += 1
         return
       end

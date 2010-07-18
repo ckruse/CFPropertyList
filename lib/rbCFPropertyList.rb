@@ -57,15 +57,20 @@ module CFPropertyList
   end
 end
 
-dirname = File.dirname(__FILE__)
-require dirname + '/rbCFPlistError.rb'
-require dirname + '/rbCFTypes.rb'
-require dirname + '/rbXMLCFPropertyList.rb'
-require dirname + '/rbBinaryCFPropertyList.rb'
-
-require 'iconv' unless "".respond_to?("encode")
-
 class String
+  unless("".respond_to?(:blob) && "".respond_to?(:blob=)) then
+    # The blob status of this string (to set to true if a binary string)
+    attr_accessor :blob
+  end
+
+  unless("".respond_to?(:blob?)) then
+    # Returns whether or not +str+ is a blob.
+    # @return [true,false] If true, this string contains binary data. If false, its a regular string
+    def blob?
+      @blob
+    end
+  end
+
   unless("".respond_to?(:bytesize)) then
     def bytesize
       self.length
@@ -73,6 +78,13 @@ class String
   end
 end
 
+dirname = File.dirname(__FILE__)
+require dirname + '/rbCFPlistError.rb'
+require dirname + '/rbCFTypes.rb'
+require dirname + '/rbXMLCFPropertyList.rb'
+require dirname + '/rbBinaryCFPropertyList.rb'
+
+require 'iconv' unless "".respond_to?("encode")
 
 module CFPropertyList
   # Create CFType hierarchy by guessing the correct CFType, e.g.

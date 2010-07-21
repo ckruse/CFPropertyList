@@ -3,6 +3,7 @@
 require 'libxml'
 require 'kconv'
 require 'date'
+require 'time'
 
 #
 # CFPropertyList implementation

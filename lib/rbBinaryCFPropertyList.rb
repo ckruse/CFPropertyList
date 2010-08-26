@@ -96,7 +96,7 @@ module CFPropertyList
       end
 
       offsets.each do |offset|
-        binary_str += Binary.pack_it_with_size(offset_size,offset)
+        binary_str += "#{Binary.pack_it_with_size(offset_size,offset)}"
       end
 
       binary_str += [offset_size, @object_ref_size].pack("x6CC")

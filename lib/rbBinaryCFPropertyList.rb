@@ -90,19 +90,19 @@ module CFPropertyList
       offsets = []
 
       0.upto(@object_table.size-1) do |i|
-        binary_str += @object_table[i]
+        binary_str << @object_table[i]
         offsets[i] = object_offset
         object_offset += @object_table[i].bytesize
       end
 
       offsets.each do |offset|
-        binary_str += "#{Binary.pack_it_with_size(offset_size,offset)}"
+        binary_str << "#{Binary.pack_it_with_size(offset_size,offset)}"
       end
 
-      binary_str += [offset_size, @object_ref_size].pack("x6CC")
-      binary_str += [@count_objects].pack("x4N")
-      binary_str += [0].pack("x4N")
-      binary_str += [table_offset].pack("x4N")
+      binary_str << [offset_size, @object_ref_size].pack("x6CC")
+      binary_str << [@count_objects].pack("x4N")
+      binary_str << [0].pack("x4N")
+      binary_str << [table_offset].pack("x4N")
 
       return binary_str
     end
@@ -630,7 +630,7 @@ module CFPropertyList
       bdata = Binary.type_bytes("a", val.value.size) # a is 1010, type indicator for arrays
 
       val.value.each do |v|
-        bdata += Binary.pack_it_with_size(@object_ref_size,  v.to_binary(self));
+        bdata << Binary.pack_it_with_size(@object_ref_size,  v.to_binary(self));
       end
 
       @object_table[saved_object_count] = bdata
@@ -647,11 +647,11 @@ module CFPropertyList
       val.value.each_key do |k|
         str = CFString.new(k)
         key = str.to_binary(self)
-        bdata += Binary.pack_it_with_size(@object_ref_size,key)
+        bdata << Binary.pack_it_with_size(@object_ref_size,key)
       end
 
       val.value.each_value do |v|
-        bdata += Binary.pack_it_with_size(@object_ref_size,v.to_binary(self))
+        bdata << Binary.pack_it_with_size(@object_ref_size,v.to_binary(self))
       end
 
       @object_table[saved_object_count] = bdata

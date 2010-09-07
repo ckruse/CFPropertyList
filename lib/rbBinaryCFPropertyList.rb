@@ -226,8 +226,15 @@ module CFPropertyList
     def Binary.charset_strlen(str,charset="UTF-8")
       return str.length if str.respond_to?("encode")
 
-      str = Iconv.conv("UTF-8",charset,str) if charset != "UTF-8"
-      return str.scan(/./mu).size
+      utf8_str = Iconv.conv("UTF-8",charset,str)
+      size = utf8_str.scan(/./mu).size
+
+      # UTF-16 code units in the range D800-DBFF are the beginning of
+      # a surrogate pair, and count as one additional character for
+      # length calculation.
+      str.split('').each_slice(2) { |pair| size += 1 if ("\xd8".."\xdb").include?(pair[0]) } if charset =~ /^UTF-16/
+
+      return size
     end
 
     # Read a unicode string value, coded as UTF-16BE
@@ -519,8 +526,8 @@ module CFPropertyList
         end
 
         if(utf16) then
-          bdata = Binary.type_bytes("6",Binary.charset_strlen(val,"UTF-8")) # 6 is 0110, unicode string (utf16be)
           val = Binary.charset_convert(val,"UTF-8","UTF-16BE")
+          bdata = Binary.type_bytes("6",Binary.charset_strlen(val,"UTF-16BE")) # 6 is 0110, unicode string (utf16be)
 
           val.force_encoding("ASCII-8BIT") if val.respond_to?("encode")
           @object_table[saved_object_count] = bdata + val

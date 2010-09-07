@@ -37,7 +37,7 @@ module CFPropertyList
         |line|
         str1 << line
         unless(first) then
-          str1 << "<!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n" if line =~ /^\s*<\?xml/
+          str1 << "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n" if line =~ /^\s*<\?xml/
         end
 
         first = true

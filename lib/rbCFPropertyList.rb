@@ -109,7 +109,7 @@ module CFPropertyList
       return CFBoolean.new(object)
     elsif(object.is_a?(String)) then
       return object.blob? ? CFData.new(object, CFData::DATA_RAW) : CFString.new(object)
-    elsif(object.is_a?(IO)) then
+    elsif(object.respond_to?(:read)) then
       return CFData.new(object.read(), CFData::DATA_RAW)
     elsif(object.is_a?(Time) || object.is_a?(DateTime) || object.is_a?(Date)) then
       return CFDate.new(object)

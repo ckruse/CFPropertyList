@@ -141,7 +141,15 @@ module CFPropertyList
         val = val[0]
       when 3
         hiword,loword = buff.unpack("NN")
-        val = hiword << 32 | loword
+        if (hiword & 0x80000000) != 0
+          # 8 byte integers are always signed, and are negative when bit 63 is
+          # set. Decoding into either a Fixnum or Bignum is tricky, however,
+          # because the size of a Fixnum varies among systems, and Ruby
+          # doesn't consider the number to be negative, and won't sign extend.
+          val = -(2**63 - ((hiword & 0x7fffffff) << 32 | loword))
+        else
+          val = hiword << 32 | loword
+        end
       end
 
       return CFInteger.new(val);

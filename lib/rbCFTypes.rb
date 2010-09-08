@@ -166,7 +166,7 @@ module CFPropertyList
 
     # get base64 encoded value
     def encoded_value
-      @value ||= "\n#{Base64.encode64(@raw_value)}"
+      @value ||= "\n#{Base64.encode64(@raw_value).gsub("\n", '').scan(/.{1,76}/).join("\n")}\n"
     end
 
     # get base64 decoded value

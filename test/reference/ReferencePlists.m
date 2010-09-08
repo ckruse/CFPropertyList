@@ -72,7 +72,19 @@ int main(int argc, const char * argv[])
     
     // Arbitrary data
     WriteBothPlistFormats([NSData dataWithBytes:"data" length:4], @"data_short");
-    WriteBothPlistFormats([NSData dataWithBytes:"datadatadatadata" length:16], @"data_long");
+    WriteBothPlistFormats([NSData dataWithBytes:"datadatadatadata" length:16], @"data_long_1_byte");
+    NSMutableData *data = [[NSMutableData alloc] initWithCapacity:512];
+    for (int i = 0; i < 512; i += 4)
+    {
+        [data appendBytes:"data" length:4];
+    }
+    WriteBothPlistFormats(data, @"data_long_2_bytes");
+    for (int i = 0; i < 65536 - 512; i += 4)
+    {
+        [data appendBytes:"data" length:4];
+    }
+    WriteBothPlistFormats(data, @"data_long_4_bytes");
+    [data release];
     
     // Strings
     WriteBothPlistFormats([NSString stringWithCString:"data" encoding:NSASCIIStringEncoding], @"string_ascii_short");

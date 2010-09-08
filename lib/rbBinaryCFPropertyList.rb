@@ -408,12 +408,20 @@ module CFPropertyList
     def Binary.int_bytes(int)
       intbytes = ""
 
-      if(int > 0xFFFF) then
-        intbytes = "\x12"+[int].pack("N") # 4 byte integer
-      elsif(int > 0xFF) then
-        intbytes = "\x11"+[int].pack("n") # 2 byte integer
+      if(int >= 0) then
+        if (int <= 0xFF) then
+          intbytes = "\x10"+[int].pack("c") # 1 byte integer
+        elsif(int <= 0xFFFF) then
+          intbytes = "\x11"+[int].pack("n") # 2 byte integer
+        elsif(int <= 0xFFFFFFFF) then
+          intbytes = "\x12"+[int].pack("N") # 4 byte integer
+        elsif(int <= 0x7FFFFFFFFFFFFFFF)
+          intbytes = "\x13"+[int >> 32, int & 0xFFFFFFFF].pack("NN") # 8 byte integer
+        else
+          raise CFFormatError.new("Integer too large: #{int}")
+        end
       else
-        intbytes = "\x10"+[int].pack("C") # 8 byte integer
+        intbytes = "\x13"+[int >> 32, int & 0xFFFFFFFF].pack("NN") # 8 byte integer
       end
 
       return intbytes;

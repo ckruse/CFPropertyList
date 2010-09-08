@@ -63,7 +63,8 @@ int main(int argc, const char * argv[])
     WriteBothPlistFormats([NSNumber numberWithInt:-1], @"int_signed");
     
     // Floating point numbers
-    WriteBothPlistFormats([NSNumber numberWithFloat:1.5], @"real");
+    WriteBothPlistFormats([NSNumber numberWithFloat:1.5], @"real_float");
+    WriteBothPlistFormats([NSNumber numberWithDouble:1.5], @"real_double");
     
     // Dates
     WriteBothPlistFormats([NSDate dateWithTimeIntervalSince1970:0], @"date_epoch");

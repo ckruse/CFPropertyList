@@ -6,7 +6,7 @@ require 'rake/testtask'
 
 spec = Gem::Specification.new do |s| 
   s.name = "CFPropertyList"
-  s.version = "2.0.10"
+  s.version = "2.0.11"
   s.author = "Christian Kruse"
   s.email = "cjk@wwwtech.de"
   s.homepage = "http://github.com/ckruse/CFPropertyList"

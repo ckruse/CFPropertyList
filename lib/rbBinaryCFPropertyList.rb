@@ -389,11 +389,16 @@ module CFPropertyList
 
     # calculate how many bytes are needed to save +count+
     def Binary.bytes_needed(count)
-      nbytes = 0
-
-      while count >= 1 do
-        nbytes += 1
-        count /= 256
+      if count < 2**8
+        nbytes = 1
+      elsif count < 2**16
+        nbytes = 2
+      elsif count < 2**32
+        nbytes = 4
+      elsif count < 2**64
+        nbytes = 8
+      else
+        raise CFFormatError.new("Data size too large: #{count}")
       end
 
       return nbytes

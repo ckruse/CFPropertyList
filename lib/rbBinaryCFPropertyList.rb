@@ -377,14 +377,18 @@ module CFPropertyList
 
     # pack an +int+ of +nbytes+ with size
     def Binary.pack_it_with_size(nbytes,int)
-      format = ["C", "n", "N", "N"][nbytes-1]
-
-      if(nbytes == 3) then
-        val = [int].pack(format)
-        return val.slice(-3)
+      case nbytes
+      when 1
+        return [int].pack('c')
+      when 2
+        return [int].pack('n')
+      when 4
+        return [int].pack('N')
+      when 8
+        return [int >> 32, int & 0xFFFFFFFF].pack('NN')
+      else
+        raise CFFormatError.new("Don't know how to pack #{nbytes} byte integer")
       end
-
-      return [int].pack(format)
     end
 
     # calculate how many bytes are needed to save +count+

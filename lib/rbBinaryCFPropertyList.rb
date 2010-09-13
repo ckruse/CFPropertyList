@@ -527,13 +527,15 @@ module CFPropertyList
     end
     protected :unique_and_count_values
 
+    def Binary.ascii_string?(str)
+      return str.scan(/[\x80-\xFF]/m).size == 0
+    end
+    
     # Counts the number of bytes the string will have when coded; utf-16be if non-ascii characters are present.
     def Binary.binary_strlen(val)
-      val.each_byte do |b|
-        if(b > 127) then
-          val = Binary.charset_convert(val, 'UTF-8', 'UTF-16BE')
-          return val.bytesize
-        end
+      if !ascii_string?(val)
+        val = Binary.charset_convert(val, 'UTF-8', 'UTF-16BE')
+        return val.bytesize
       end
 
       return val.bytesize
@@ -548,14 +550,7 @@ module CFPropertyList
         @written_object_count += 1
 
         @unique_table[val] = saved_object_count
-        utf16 = false
-
-        val.each_byte do |b|
-          if(b > 127) then
-            utf16 = true
-            break
-          end
-        end
+        utf16 = !Binary.ascii_string?(val)
 
         if(utf16) then
           val = Binary.charset_convert(val,"UTF-8","UTF-16BE")

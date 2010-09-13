@@ -98,8 +98,33 @@ int main(int argc, const char * argv[])
     // Dictionary
     WriteBothPlistFormats([NSDictionary dictionaryWithObject:@"value" forKey:@"key"], @"dictionary");
     
-    // TODO:
-    // two objects, first being big enough to force the offsets to be 2 and 4 bytes long
+    // Multiple objects, each object offset is 1 bytes
+    NSMutableArray *array = [NSMutableArray array];
+    for (int i = 0; i < 20; i++)
+    {
+        [array addObject:[NSString stringWithFormat:@"%d", i]];
+    }
+    WriteBothPlistFormats(array, @"offsets_1_byte");
+
+    // 300+ byte strings make the offsets 2 bytes each
+    NSMutableString *string = [NSMutableString string];
+    for (int i = 0; i < 30; i++)
+    {
+        [string appendString:@"1234567890"];
+    }
+    array = [NSMutableArray arrayWithObjects:
+             [string stringByAppendingString:@"-0"],
+             [string stringByAppendingString:@"-1"],
+             nil];
+    WriteBothPlistFormats(array, @"offsets_2_bytes");
+    
+    /* 220 of those strings is >64 KB, which will push the object offsets to
+     * 4 bytes. */
+    for (int i = 2; i < 220; i++)
+    {
+        [array addObject:[string stringByAppendingFormat:@"-%d", i]];
+    }
+    WriteBothPlistFormats(array, @"offsets_4_bytes");
     
     [pool drain];
     return 0;

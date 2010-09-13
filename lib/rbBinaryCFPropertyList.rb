@@ -95,8 +95,15 @@ module CFPropertyList
         object_offset += @object_table[i].bytesize
       end
 
-      offsets.each do |offset|
-        binary_str << "#{Binary.pack_it_with_size(offset_size,offset)}"
+      if offset_size < 8
+        # Fast path: encode the entire offset array at once.
+        binary_str << offsets.pack((%w(C n N N)[offset_size - 1]) * offsets.size)
+      else
+        # Slow path: host may be little or big endian, must pack each offset
+        # separately.
+        offsets.each do |offset|
+          binary_str << "#{Binary.pack_it_with_size(offset_size,offset)}"
+        end
       end
 
       binary_str << [offset_size, @object_ref_size].pack("x6CC")

@@ -413,11 +413,21 @@ module CFPropertyList
     def count_object_refs(object)
       case object
       when CFArray
-        return object.value.inject(0) { |sum, element| sum + count_object_refs(element) } + object.value.size
+        contained_refs = 0
+        object.value.each do |element|
+          if CFArray === element || CFDictionary === element
+            contained_refs += count_object_refs(element)
+          end
+        end
+        return object.value.size + contained_refs
       when CFDictionary
-        count = 0
-        object.value.each_value { |value| count += count_object_refs(value) }
-        return count + object.value.keys.size * 2
+        contained_refs = 0
+        object.value.each_value do |value|
+          if CFArray === value || CFDictionary === value
+            contained_refs += count_object_refs(value)
+          end
+        end
+        return object.value.keys.size * 2 + contained_refs
       else
         return 0
       end

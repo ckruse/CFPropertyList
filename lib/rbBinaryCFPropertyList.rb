@@ -401,6 +401,21 @@ module CFPropertyList
         raise CFFormatError.new("Don't know how to pack #{nbytes} byte integer")
       end
     end
+    
+    def Binary.pack_int_array_with_size(nbytes, array)
+      case nbytes
+      when 1
+        array.pack('C*')
+      when 2
+        array.pack('n*')
+      when 4
+        array.pack('N*')
+      when 8
+        array.collect { |int| [int >> 32, int & 0xFFFFFFFF].pack('NN') }.join
+      else
+        raise CFFormatError.new("Don't know how to pack #{nbytes} byte integer")
+      end
+    end
 
     # calculate how many bytes are needed to save +count+
     def Binary.bytes_needed(count)
@@ -608,11 +623,8 @@ module CFPropertyList
       saved_object_count = @written_object_count
       @written_object_count += 1
 
-      bdata = Binary.type_bytes(0b1010, val.value.size)
-
-      val.value.each do |v|
-        bdata << Binary.pack_it_with_size(@object_ref_size,  v.to_binary(self));
-      end
+      bdata = Binary.type_bytes(0b1010, val.value.size) +
+        Binary.pack_int_array_with_size(@object_ref_size, val.value.collect { |v| v.to_binary(self) })
 
       @object_table[saved_object_count] = bdata
       @int_size += Binary.bytes_size_int(val.value.size)
@@ -624,17 +636,12 @@ module CFPropertyList
       saved_object_count = @written_object_count
       @written_object_count += 1
 
-      bdata = Binary.type_bytes(0b1101,val.value.size)
+      keys_and_values = val.value.collect do |k, v|
+        [ CFString.new(k).to_binary(self), v.to_binary(self) ]
+      end.flatten      
 
-      val.value.each_key do |k|
-        str = CFString.new(k)
-        key = str.to_binary(self)
-        bdata << Binary.pack_it_with_size(@object_ref_size,key)
-      end
-
-      val.value.each_value do |v|
-        bdata << Binary.pack_it_with_size(@object_ref_size,v.to_binary(self))
-      end
+      bdata = Binary.type_bytes(0b1101,val.value.size) +
+        Binary.pack_int_array_with_size(@object_ref_size, keys_and_values)
 
       @object_table[saved_object_count] = bdata
       return saved_object_count

@@ -7,9 +7,6 @@ module CFPropertyList
     def load(opts)
       @unique_table = {}
       @count_objects = 0
-      @string_size = 0
-      @int_size = 0
-      @misc_size = 0
       @object_refs = 0
 
       @written_object_count = 0
@@ -59,9 +56,6 @@ module CFPropertyList
     def to_str(opts={})
       @unique_table = {}
       @count_objects = 0
-      @string_size = 0
-      @int_size = 0
-      @misc_size = 0
       @object_refs = 0
 
       @written_object_count = 0
@@ -77,21 +71,16 @@ module CFPropertyList
 
       opts[:root].to_binary(self)
 
-      table_offset = @object_table.size + @string_size + @int_size + @misc_size + @object_refs * @object_ref_size + 8
+      next_offset = 8
+      offsets = @object_table.collect { |object| offset = next_offset; next_offset += object.bytesize; offset }
+      binary_str << @object_table.join
+
+      table_offset = next_offset
       offset_size = Binary.bytes_needed(table_offset)
-
-      object_offset = 8
-      offsets = []
-
-      0.upto(@object_table.size-1) do |i|
-        binary_str << @object_table[i]
-        offsets[i] = object_offset
-        object_offset += @object_table[i].bytesize
-      end
 
       if offset_size < 8
         # Fast path: encode the entire offset array at once.
-        binary_str << offsets.pack((%w(C n N N)[offset_size - 1]) * offsets.size)
+        binary_str << offsets.pack((%w(C n N N)[offset_size - 1]) + '*')
       else
         # Slow path: host may be little or big endian, must pack each offset
         # separately.
@@ -517,8 +506,6 @@ module CFPropertyList
           bdata = Binary.type_bytes(0b0101,val.bytesize)
           @object_table[saved_object_count] = bdata + val
         end
-        @string_size += val.bytesize
-        @int_size += Binary.bytes_size_int(utf8_strlen)
       else
         saved_object_count = @unique_table[val]
       end
@@ -572,10 +559,8 @@ module CFPropertyList
       val = ""
       if(value.is_a?(CFInteger)) then
         val = int_to_binary(value.value)
-        @int_size += val.bytesize - 1  # Don't count the marker byte
       else
         val = real_to_binary(value.value)
-        @misc_size += 8
       end
 
       @object_table[saved_object_count] = val
@@ -591,7 +576,6 @@ module CFPropertyList
 
       bdata = Binary.type_bytes(0b0011, 3)
       @object_table[saved_object_count] = bdata + [val].pack("d").reverse
-      @misc_size += 8
 
       return saved_object_count
     end
@@ -612,8 +596,6 @@ module CFPropertyList
 
       bdata = Binary.type_bytes(0b0100, val.bytesize)
       @object_table[saved_object_count] = bdata + val
-      @int_size += Binary.bytes_size_int(val.bytesize)
-      @misc_size += val.bytesize
 
       return saved_object_count
     end
@@ -627,7 +609,6 @@ module CFPropertyList
         Binary.pack_int_array_with_size(@object_ref_size, val.value.collect { |v| v.to_binary(self) })
 
       @object_table[saved_object_count] = bdata
-      @int_size += Binary.bytes_size_int(val.value.size)
       return saved_object_count
     end
 

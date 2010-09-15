@@ -342,39 +342,6 @@ module CFPropertyList
     end
     protected :read_binary_object_at
 
-    # calculate the bytes needed for a size integer value
-    # used by data, string, array and dict types
-    # if int < 15, the size is encoded as part of the type byte,
-    # otherwise the count follows, encoded as other ints (int marker plus 1,
-    # 2, 4 or 8 byte big-endian int).
-    def Binary.bytes_size_int(int)
-      if int < 15
-        return 0
-      elsif int < 2**8
-        return 1 + 1
-      elsif int < 2**16
-        return 2 + 1
-      elsif int < 2**32
-        return 4 + 1
-      elsif int < 2**64
-        return 8 + 1
-      else
-        raise CFFormatError.new("Count is too large: #{int}")
-      end
-    end
-
-    # Calculate the byte needed for a „normal” integer value
-    def Binary.bytes_int(int)
-      nbytes = 1
-
-      nbytes += 1 if int > 0xFF # 2 byte int
-      nbytes += 2 if int > 0xFFFF # 4 byte int
-      nbytes += 4 if int > 0xFFFFFFFF # 8 byte int
-      nbytes += 7 if int < 0 # 8 byte int (since it is signed)
-
-      return nbytes + 1 # one „marker” byte
-    end
-
     # pack an +int+ of +nbytes+ with size
     def Binary.pack_it_with_size(nbytes,int)
       case nbytes
@@ -423,35 +390,23 @@ module CFPropertyList
       return nbytes
     end
 
-    # create integer bytes of +int+
-    def Binary.int_bytes(int)
-      intbytes = ""
-
-      if(int >= 0) then
-        if (int <= 0xFF) then
-          intbytes = "\x10"+[int].pack("c") # 1 byte integer
-        elsif(int <= 0xFFFF) then
-          intbytes = "\x11"+[int].pack("n") # 2 byte integer
-        elsif(int <= 0xFFFFFFFF) then
-          intbytes = "\x12"+[int].pack("N") # 4 byte integer
-        elsif(int <= 0x7FFFFFFFFFFFFFFF)
-          intbytes = "\x13"+[int >> 32, int & 0xFFFFFFFF].pack("NN") # 8 byte integer
+    # Create a type byte for binary format as defined by apple
+    def Binary.type_bytes(type, length)
+      if length < 15
+        return [(type << 4) | length].pack('C')
+      else
+        bytes = [(type << 4) | 0xF]
+        if length <= 0xFF
+          return bytes.push(0x10, length).pack('CCC')                              # 1 byte length
+        elsif length <= 0xFFFF
+          return bytes.push(0x11, length).pack('CCn')                              # 2 byte length
+        elsif length <= 0xFFFFFFFF
+          return bytes.push(0x12, length).pack('CCN')                              # 4 byte length
+        elsif length <= 0x7FFFFFFFFFFFFFFF
+          return bytes.push(0x13, length >> 32, length & 0xFFFFFFFF).pack('CCNN')  # 8 byte length
         else
           raise CFFormatError.new("Integer too large: #{int}")
         end
-      else
-        intbytes = "\x13"+[int >> 32, int & 0xFFFFFFFF].pack("NN") # 8 byte integer
-      end
-
-      return intbytes;
-    end
-
-    # Create a type byte for binary format as defined by apple
-    def Binary.type_bytes(type,type_len)
-      if type_len < 15
-        return [(type << 4) | type_len].pack('C')
-      else
-        return [(type << 4) | 0xF].pack('C') + Binary.int_bytes(type_len)
       end
     end
     
@@ -472,16 +427,6 @@ module CFPropertyList
       return str.scan(/[\x80-\xFF]/m).size == 0
     end
     
-    # Counts the number of bytes the string will have when coded; utf-16be if non-ascii characters are present.
-    def Binary.binary_strlen(val)
-      if !ascii_string?(val)
-        val = Binary.charset_convert(val, 'UTF-8', 'UTF-16BE')
-        return val.bytesize
-      end
-
-      return val.bytesize
-    end
-
     # Uniques and transforms a string value to binary format and adds it to the object table
     def string_to_binary(val)
       saved_object_count = -1

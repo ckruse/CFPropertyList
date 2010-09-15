@@ -37,15 +37,4 @@ class TestBinary < Test::Unit::TestCase
       CFPropertyList::Binary.bytes_needed(2**64)
     end
   end
-  
-  def test_int_bytes
-    assert_equal "\x10\xFF", CFPropertyList::Binary.int_bytes(0xFF)
-    assert_equal "\x11\xFF\xFF", CFPropertyList::Binary.int_bytes(0xFFFF)
-    assert_equal "\x12\xFF\xFF\xFF\xFF", CFPropertyList::Binary.int_bytes(0xFFFFFFFF)
-    assert_equal "\x13\x7F\xFF\xFF\xFF\xFF\xFF\xFF\xFF", CFPropertyList::Binary.int_bytes(0x7FFFFFFFFFFFFFFF)
-    assert_equal "\x13\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF", CFPropertyList::Binary.int_bytes(-1)
-    assert_raise CFFormatError do
-      CFPropertyList::Binary.int_bytes(0x8000000000000000)
-    end
-  end
 end

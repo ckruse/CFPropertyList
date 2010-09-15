@@ -444,16 +444,11 @@ module CFPropertyList
 
     # Create a type byte for binary format as defined by apple
     def Binary.type_bytes(type,type_len)
-      optional_int = ""
-
-      if(type_len < 15) then
-        type += sprintf("%x",type_len)
+      if type_len < 15
+        return [(type << 4) | type_len].pack('C')
       else
-        type += "f"
-        optional_int = Binary.int_bytes(type_len)
+        return [(type << 4) | 0xF].pack('C') + Binary.int_bytes(type_len)
       end
-
-      return [type].pack("H*") + optional_int
     end
     
     def count_object_refs(object)
@@ -498,13 +493,13 @@ module CFPropertyList
         if(utf16) then
           utf8_strlen = Binary.charset_strlen(val, "UTF-8")
           val = Binary.charset_convert(val,"UTF-8","UTF-16BE")
-          bdata = Binary.type_bytes("6", Binary.charset_strlen(val,"UTF-16BE")) # 6 is 0110, unicode string (utf16be)
+          bdata = Binary.type_bytes(0b0110, Binary.charset_strlen(val,"UTF-16BE"))
 
           val.force_encoding("ASCII-8BIT") if val.respond_to?("encode")
           @object_table[saved_object_count] = bdata + val
         else
           utf8_strlen = val.bytesize
-          bdata = Binary.type_bytes("5",val.bytesize) # 5 is 0101 which is an ASCII string (seems to be ASCII encoded)
+          bdata = Binary.type_bytes(0b0101,val.bytesize)
           @object_table[saved_object_count] = bdata + val
         end
         @string_size += val.bytesize
@@ -524,7 +519,7 @@ module CFPropertyList
       nbytes += 1 if value > 0xFFFFFFFF # 8 byte integer
       nbytes = 3 if value < 0 # 8 byte integer, since signed
 
-      bdata = Binary.type_bytes("1", nbytes) # 1 is 0001, type indicator for integer
+      bdata = Binary.type_bytes(0b0001, nbytes)
       buff = ""
 
       if(nbytes < 3) then
@@ -549,7 +544,7 @@ module CFPropertyList
 
     # Codes a real value to binary format
     def real_to_binary(val)
-      bdata = Binary.type_bytes("2",3) # 2 is 0010, type indicator for reals
+      bdata = Binary.type_bytes(0b0010,3)
       buff = [val].pack("d")
       return bdata + buff.reverse
     end
@@ -579,7 +574,7 @@ module CFPropertyList
 
       val = val.getutc.to_f - CFDate::DATE_DIFF_APPLE_UNIX # CFDate is a real, number of seconds since 01/01/2001 00:00:00 GMT
 
-      bdata = Binary.type_bytes("3", 3) # 3 is 0011, type indicator for date
+      bdata = Binary.type_bytes(0b0011, 3)
       @object_table[saved_object_count] = bdata + [val].pack("d").reverse
       @misc_size += 8
 
@@ -600,7 +595,7 @@ module CFPropertyList
       saved_object_count = @written_object_count
       @written_object_count += 1
 
-      bdata = Binary.type_bytes("4", val.bytesize) # a is 1000, type indicator for data
+      bdata = Binary.type_bytes(0b0100, val.bytesize)
       @object_table[saved_object_count] = bdata + val
       @int_size += Binary.bytes_size_int(val.bytesize)
       @misc_size += val.bytesize
@@ -613,7 +608,7 @@ module CFPropertyList
       saved_object_count = @written_object_count
       @written_object_count += 1
 
-      bdata = Binary.type_bytes("a", val.value.size) # a is 1010, type indicator for arrays
+      bdata = Binary.type_bytes(0b1010, val.value.size)
 
       val.value.each do |v|
         bdata << Binary.pack_it_with_size(@object_ref_size,  v.to_binary(self));
@@ -629,7 +624,7 @@ module CFPropertyList
       saved_object_count = @written_object_count
       @written_object_count += 1
 
-      bdata = Binary.type_bytes("d",val.value.size) # d=1101, type indicator for dictionary
+      bdata = Binary.type_bytes(0b1101,val.value.size)
 
       val.value.each_key do |k|
         str = CFString.new(k)

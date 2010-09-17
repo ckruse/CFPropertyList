@@ -7,9 +7,6 @@ module CFPropertyList
     def load(opts)
       @unique_table = {}
       @count_objects = 0
-      @string_size = 0
-      @int_size = 0
-      @misc_size = 0
       @object_refs = 0
 
       @written_object_count = 0
@@ -59,9 +56,6 @@ module CFPropertyList
     def to_str(opts={})
       @unique_table = {}
       @count_objects = 0
-      @string_size = 0
-      @int_size = 0
-      @misc_size = 0
       @object_refs = 0
 
       @written_object_count = 0
@@ -71,36 +65,32 @@ module CFPropertyList
       @offsets = []
 
       binary_str = "bplist00"
-      unique_and_count_values(opts[:root])
 
-      @count_objects += @unique_table.size
-      @object_ref_size = Binary.bytes_needed(@count_objects)
-
-      file_size = @string_size + @int_size + @misc_size + @object_refs * @object_ref_size + 40
-      offset_size = Binary.bytes_needed(file_size)
-      table_offset = file_size - 32
-
-      @object_table = []
-      @written_object_count = 0
-      @unique_table = {} # we needed it to calculate several values, but now we need an empty table
+      @object_refs = count_object_refs(opts[:root])
+      @object_ref_size = Binary.bytes_needed(@object_refs)
 
       opts[:root].to_binary(self)
 
-      object_offset = 8
-      offsets = []
+      next_offset = 8
+      offsets = @object_table.collect { |object| offset = next_offset; next_offset += object.bytesize; offset }
+      binary_str << @object_table.join
 
-      0.upto(@object_table.size-1) do |i|
-        binary_str << @object_table[i]
-        offsets[i] = object_offset
-        object_offset += @object_table[i].bytesize
-      end
+      table_offset = next_offset
+      offset_size = Binary.bytes_needed(table_offset)
 
-      offsets.each do |offset|
-        binary_str << "#{Binary.pack_it_with_size(offset_size,offset)}"
+      if offset_size < 8
+        # Fast path: encode the entire offset array at once.
+        binary_str << offsets.pack((%w(C n N N)[offset_size - 1]) + '*')
+      else
+        # Slow path: host may be little or big endian, must pack each offset
+        # separately.
+        offsets.each do |offset|
+          binary_str << "#{Binary.pack_it_with_size(offset_size,offset)}"
+        end
       end
 
       binary_str << [offset_size, @object_ref_size].pack("x6CC")
-      binary_str << [@count_objects].pack("x4N")
+      binary_str << [@object_table.size].pack("x4N")
       binary_str << [0].pack("x4N")
       binary_str << [table_offset].pack("x4N")
 
@@ -352,39 +342,35 @@ module CFPropertyList
     end
     protected :read_binary_object_at
 
-    # calculate the bytes needed for a size integer value
-    def Binary.bytes_size_int(int)
-      nbytes = 0
-
-      nbytes += 2 if int > 0xE # 2 bytes int
-      nbytes += 1 if int > 0xFF # 3 bytes int
-      nbytes += 2 if int > 0xFFFF # 5 bytes int
-
-      return nbytes
-    end
-
-    # Calculate the byte needed for a „normal” integer value
-    def Binary.bytes_int(int)
-      nbytes = 1
-
-      nbytes += 1 if int > 0xFF # 2 byte int
-      nbytes += 2 if int > 0xFFFF # 4 byte int
-      nbytes += 4 if int > 0xFFFFFFFF # 8 byte int
-      nbytes += 7 if int < 0 # 8 byte int (since it is signed)
-
-      return nbytes + 1 # one „marker” byte
-    end
-
     # pack an +int+ of +nbytes+ with size
     def Binary.pack_it_with_size(nbytes,int)
-      format = ["C", "n", "N", "N"][nbytes-1]
-
-      if(nbytes == 3) then
-        val = [int].pack(format)
-        return val.slice(-3)
+      case nbytes
+      when 1
+        return [int].pack('c')
+      when 2
+        return [int].pack('n')
+      when 4
+        return [int].pack('N')
+      when 8
+        return [int >> 32, int & 0xFFFFFFFF].pack('NN')
+      else
+        raise CFFormatError.new("Don't know how to pack #{nbytes} byte integer")
       end
-
-      return [int].pack(format)
+    end
+    
+    def Binary.pack_int_array_with_size(nbytes, array)
+      case nbytes
+      when 1
+        array.pack('C*')
+      when 2
+        array.pack('n*')
+      when 4
+        array.pack('N*')
+      when 8
+        array.collect { |int| [int >> 32, int & 0xFFFFFFFF].pack('NN') }.join
+      else
+        raise CFFormatError.new("Don't know how to pack #{nbytes} byte integer")
+      end
     end
 
     # calculate how many bytes are needed to save +count+
@@ -404,130 +390,53 @@ module CFPropertyList
       return nbytes
     end
 
-    # create integer bytes of +int+
-    def Binary.int_bytes(int)
-      intbytes = ""
-
-      if(int >= 0) then
-        if (int <= 0xFF) then
-          intbytes = "\x10"+[int].pack("c") # 1 byte integer
-        elsif(int <= 0xFFFF) then
-          intbytes = "\x11"+[int].pack("n") # 2 byte integer
-        elsif(int <= 0xFFFFFFFF) then
-          intbytes = "\x12"+[int].pack("N") # 4 byte integer
-        elsif(int <= 0x7FFFFFFFFFFFFFFF)
-          intbytes = "\x13"+[int >> 32, int & 0xFFFFFFFF].pack("NN") # 8 byte integer
+    # Create a type byte for binary format as defined by apple
+    def Binary.type_bytes(type, length)
+      if length < 15
+        return [(type << 4) | length].pack('C')
+      else
+        bytes = [(type << 4) | 0xF]
+        if length <= 0xFF
+          return bytes.push(0x10, length).pack('CCC')                              # 1 byte length
+        elsif length <= 0xFFFF
+          return bytes.push(0x11, length).pack('CCn')                              # 2 byte length
+        elsif length <= 0xFFFFFFFF
+          return bytes.push(0x12, length).pack('CCN')                              # 4 byte length
+        elsif length <= 0x7FFFFFFFFFFFFFFF
+          return bytes.push(0x13, length >> 32, length & 0xFFFFFFFF).pack('CCNN')  # 8 byte length
         else
           raise CFFormatError.new("Integer too large: #{int}")
         end
-      else
-        intbytes = "\x13"+[int >> 32, int & 0xFFFFFFFF].pack("NN") # 8 byte integer
       end
-
-      return intbytes;
     end
-
-    # Create a type byte for binary format as defined by apple
-    def Binary.type_bytes(type,type_len)
-      optional_int = ""
-
-      if(type_len < 15) then
-        type += sprintf("%x",type_len)
-      else
-        type += "f"
-        optional_int = Binary.int_bytes(type_len)
-      end
-
-      return [type].pack("H*") + optional_int
-    end
-
-    # „unique” and count values. „Unique” means, several objects (e.g. strings)
-    # will only be saved once and referenced later
-    def unique_and_count_values(value)
-      # no uniquing for other types than CFString and CFData
-      if(value.is_a?(CFInteger) || value.is_a?(CFReal)) then
-        val = value.value
-        if(value.is_a?(CFInteger)) then
-          @int_size += Binary.bytes_int(val)
-        else
-          @misc_size += 9 # 9 bytes (8 + marker byte) for real
-        end
-
-        @count_objects += 1
-        return
-      elsif(value.is_a?(CFDate)) then
-        @misc_size += 9
-        @count_objects += 1
-        return
-      elsif(value.is_a?(CFBoolean)) then
-        @count_objects += 1
-        @misc_size += 1
-        return
-      elsif(value.is_a?(CFArray)) then
-        cnt = 0
-
-        value.value.each do |v|
-          cnt += 1
-          unique_and_count_values(v)
-          @object_refs += 1 # each array member is a ref
-        end
-
-        @count_objects += 1
-        @int_size += Binary.bytes_size_int(cnt)
-        @misc_size += 1 # marker byte for array
-        return
-      elsif(value.is_a?(CFDictionary)) then
-        cnt = 0
-
-        value.value.each_pair do |k,v|
-          cnt += 1
-
-          if(!@unique_table.has_key?(k))
-            @unique_table[k] = 0
-            @string_size += Binary.binary_strlen(k) + 1
-            @int_size += Binary.bytes_size_int(Binary.charset_strlen(k,'UTF-8'))
+    
+    def count_object_refs(object)
+      case object
+      when CFArray
+        contained_refs = 0
+        object.value.each do |element|
+          if CFArray === element || CFDictionary === element
+            contained_refs += count_object_refs(element)
           end
-
-          @object_refs += 2 # both, key and value, are refs
-          @unique_table[k] += 1
-          unique_and_count_values(v)
         end
-
-        @count_objects += 1
-        @misc_size += 1 # marker byte for dict
-        @int_size += Binary.bytes_size_int(cnt)
-        return
-      elsif(value.is_a?(CFData)) then
-        val = value.decoded_value
-        @int_size += Binary.bytes_size_int(val.length)
-        @misc_size += val.length + 1
-        @count_objects += 1
-        return
-      end
-
-      val = value.value
-      if(!@unique_table.has_key?(val)) then
-        @unique_table[val] = 0
-        @string_size += Binary.binary_strlen(val) + 1
-        @int_size += Binary.bytes_size_int(Binary.charset_strlen(val,'UTF-8'))
-      end
-
-      @unique_table[val] += 1
-    end
-    protected :unique_and_count_values
-
-    # Counts the number of bytes the string will have when coded; utf-16be if non-ascii characters are present.
-    def Binary.binary_strlen(val)
-      val.each_byte do |b|
-        if(b > 127) then
-          val = Binary.charset_convert(val, 'UTF-8', 'UTF-16BE')
-          return val.bytesize
+        return object.value.size + contained_refs
+      when CFDictionary
+        contained_refs = 0
+        object.value.each_value do |value|
+          if CFArray === value || CFDictionary === value
+            contained_refs += count_object_refs(value)
+          end
         end
+        return object.value.keys.size * 2 + contained_refs
+      else
+        return 0
       end
-
-      return val.bytesize
     end
 
+    def Binary.ascii_string?(str)
+      return str.scan(/[\x80-\xFF]/m).size == 0
+    end
+    
     # Uniques and transforms a string value to binary format and adds it to the object table
     def string_to_binary(val)
       saved_object_count = -1
@@ -537,23 +446,19 @@ module CFPropertyList
         @written_object_count += 1
 
         @unique_table[val] = saved_object_count
-        utf16 = false
+        utf16 = !Binary.ascii_string?(val)
 
-        val.each_byte do |b|
-          if(b > 127) then
-            utf16 = true
-            break
-          end
-        end
-
+        utf8_strlen = 0
         if(utf16) then
+          utf8_strlen = Binary.charset_strlen(val, "UTF-8")
           val = Binary.charset_convert(val,"UTF-8","UTF-16BE")
-          bdata = Binary.type_bytes("6",Binary.charset_strlen(val,"UTF-16BE")) # 6 is 0110, unicode string (utf16be)
+          bdata = Binary.type_bytes(0b0110, Binary.charset_strlen(val,"UTF-16BE"))
 
           val.force_encoding("ASCII-8BIT") if val.respond_to?("encode")
           @object_table[saved_object_count] = bdata + val
         else
-          bdata = Binary.type_bytes("5",val.bytesize) # 5 is 0101 which is an ASCII string (seems to be ASCII encoded)
+          utf8_strlen = val.bytesize
+          bdata = Binary.type_bytes(0b0101,val.bytesize)
           @object_table[saved_object_count] = bdata + val
         end
       else
@@ -571,7 +476,7 @@ module CFPropertyList
       nbytes += 1 if value > 0xFFFFFFFF # 8 byte integer
       nbytes = 3 if value < 0 # 8 byte integer, since signed
 
-      bdata = Binary.type_bytes("1", nbytes) # 1 is 0001, type indicator for integer
+      bdata = Binary.type_bytes(0b0001, nbytes)
       buff = ""
 
       if(nbytes < 3) then
@@ -596,7 +501,7 @@ module CFPropertyList
 
     # Codes a real value to binary format
     def real_to_binary(val)
-      bdata = Binary.type_bytes("2",3) # 2 is 0010, type indicator for reals
+      bdata = Binary.type_bytes(0b0010,3)
       buff = [val].pack("d")
       return bdata + buff.reverse
     end
@@ -624,7 +529,7 @@ module CFPropertyList
 
       val = val.getutc.to_f - CFDate::DATE_DIFF_APPLE_UNIX # CFDate is a real, number of seconds since 01/01/2001 00:00:00 GMT
 
-      bdata = Binary.type_bytes("3", 3) # 3 is 0011, type indicator for date
+      bdata = Binary.type_bytes(0b0011, 3)
       @object_table[saved_object_count] = bdata + [val].pack("d").reverse
 
       return saved_object_count
@@ -644,7 +549,7 @@ module CFPropertyList
       saved_object_count = @written_object_count
       @written_object_count += 1
 
-      bdata = Binary.type_bytes("4", val.bytesize) # a is 1000, type indicator for data
+      bdata = Binary.type_bytes(0b0100, val.bytesize)
       @object_table[saved_object_count] = bdata + val
 
       return saved_object_count
@@ -655,11 +560,8 @@ module CFPropertyList
       saved_object_count = @written_object_count
       @written_object_count += 1
 
-      bdata = Binary.type_bytes("a", val.value.size) # a is 1010, type indicator for arrays
-
-      val.value.each do |v|
-        bdata << Binary.pack_it_with_size(@object_ref_size,  v.to_binary(self));
-      end
+      bdata = Binary.type_bytes(0b1010, val.value.size) +
+        Binary.pack_int_array_with_size(@object_ref_size, val.value.collect { |v| v.to_binary(self) })
 
       @object_table[saved_object_count] = bdata
       return saved_object_count
@@ -670,17 +572,12 @@ module CFPropertyList
       saved_object_count = @written_object_count
       @written_object_count += 1
 
-      bdata = Binary.type_bytes("d",val.value.size) # d=1101, type indicator for dictionary
+      keys_and_values = val.value.collect do |k, v|
+        [ CFString.new(k).to_binary(self), v.to_binary(self) ]
+      end.flatten      
 
-      val.value.each_key do |k|
-        str = CFString.new(k)
-        key = str.to_binary(self)
-        bdata << Binary.pack_it_with_size(@object_ref_size,key)
-      end
-
-      val.value.each_value do |v|
-        bdata << Binary.pack_it_with_size(@object_ref_size,v.to_binary(self))
-      end
+      bdata = Binary.type_bytes(0b1101,val.value.size) +
+        Binary.pack_int_array_with_size(@object_ref_size, keys_and_values)
 
       @object_table[saved_object_count] = bdata
       return saved_object_count

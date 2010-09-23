@@ -43,6 +43,7 @@ module CFPropertyList
         first = true
       end
 
+      str1.force_encoding('UTF-8') if str1.respond_to?(:force_encoding)
       return str1
     end
 
@@ -50,8 +51,14 @@ module CFPropertyList
 
     # get the value of a DOM node
     def get_value(n)
-      return n.first.content if n.children?
-      return n.content
+      content = if n.children?
+        n.first.content
+      else
+        n.content
+      end
+      
+      content.force_encoding('UTF-8') if content.respond_to?(:force_encoding)
+      content
     end
 
     # import the XML values

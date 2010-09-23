@@ -1,6 +1,7 @@
 module Reference
   def raw_xml(filename)
-    File.new("test/reference/#{filename}.xml").read
+    data = File.new("test/reference/#{filename}.xml").read
+    data.force_encoding('UTF-8') if data.respond_to?(:force_encoding)
   end
   
   def parsed_xml(filename)
@@ -9,7 +10,8 @@ module Reference
   end
   
   def raw_binary(filename)
-    File.new("test/reference/#{filename}.plist").read
+    data = File.new("test/reference/#{filename}.plist").read
+    data.force_encoding('BINARY') if data.respond_to?(:force_encoding)
   end
   
   def parsed_binary(filename)

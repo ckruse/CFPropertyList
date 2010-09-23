@@ -442,7 +442,11 @@ module CFPropertyList
     end
 
     def Binary.ascii_string?(str)
-      return !str.bytes.any? { |b| b > 127 }
+      if str.respond_to?(:ascii_only?)
+        return str.ascii_only?
+      else
+        return str.scan(/[\x80-\xFF]/mn).size == 0
+      end
     end
     
     # Uniques and transforms a string value to binary format and adds it to the object table

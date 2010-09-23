@@ -222,16 +222,24 @@ module CFPropertyList
 
     # Count characters considering character set
     def Binary.charset_strlen(str,charset="UTF-8")
-      return str.length if str.respond_to?("encode")
-
-      utf8_str = Iconv.conv("UTF-8",charset,str)
-      size = utf8_str.scan(/./mu).size
-
+      if str.respond_to?(:encode)
+        size = str.length
+      else
+        utf8_str = Iconv.conv("UTF-8",charset,str)
+        size = utf8_str.scan(/./mu).size
+      end
+      
       # UTF-16 code units in the range D800-DBFF are the beginning of
       # a surrogate pair, and count as one additional character for
       # length calculation.
-      str.split('').each_slice(2) { |pair| size += 1 if ("\xd8".."\xdb").include?(pair[0]) } if charset =~ /^UTF-16/
-
+      if charset =~ /^UTF-16/
+        if str.respond_to?(:encode)
+          str.bytes.to_a.each_slice(2) { |pair| size += 1 if (0xd8..0xdb).include?(pair[0]) }
+        else
+          str.split('').each_slice(2) { |pair| size += 1 if ("\xd8".."\xdb").include?(pair[0]) }
+        end
+      end
+      
       return size
     end
 

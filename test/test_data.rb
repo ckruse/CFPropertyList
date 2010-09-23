@@ -4,7 +4,7 @@ require 'rubygems'
 gem 'libxml-ruby'
 
 require 'cfpropertylist'
-require 'test/reference'
+require 'reference'
 
 require 'stringio'
 

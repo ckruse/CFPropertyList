@@ -38,8 +38,9 @@ Rake::GemPackageTask.new(spec) do |pkg|
   pkg.need_tar = true 
 end
 
-Rake::TestTask.new do |t|
-  t.test_files = Dir.glob('test/test*.rb')
+Rake::TestTask.new do |test|
+  test.libs << 'test'
+  test.test_files = Dir.glob('test/test*.rb')
 end
 
 # eof

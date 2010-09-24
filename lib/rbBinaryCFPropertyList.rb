@@ -584,10 +584,9 @@ module CFPropertyList
       saved_object_count = @written_object_count
       @written_object_count += 1
 
-      keys_and_values = val.value.collect do |k, v|
-        [ CFString.new(k).to_binary(self), v.to_binary(self) ]
-      end.flatten      
-
+      keys_and_values = val.value.keys.collect { |k| CFString.new(k).to_binary(self) }
+      keys_and_values += val.value.keys.collect { |k| val.value[k].to_binary(self) }
+      
       bdata = Binary.type_bytes(0b1101,val.value.size) +
         Binary.pack_int_array_with_size(@object_ref_size, keys_and_values)
 

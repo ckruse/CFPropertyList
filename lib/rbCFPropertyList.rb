@@ -68,7 +68,7 @@ class String
     # Returns whether or not +str+ is a blob.
     # @return [true,false] If true, this string contains binary data. If false, its a regular string
     def blob?
-      @blob
+      blob
     end
   end
 

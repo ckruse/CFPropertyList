@@ -131,7 +131,7 @@ module CFPropertyList
 
       return CFDictionary.new(hsh)
     elsif options[:converter_method] and object.respond_to?(options[:converter_method]) then
-      return CFPropertyList.guess(object.send(options[:converter_method]))
+      return CFPropertyList.guess(object.send(options[:converter_method]),options)
     elsif options[:convert_unknown_to_string] then
       return CFString.new(object.to_s)
     else

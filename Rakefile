@@ -4,9 +4,9 @@ require 'rake/gempackagetask'
 require 'rake/rdoctask'
 require 'rake/testtask'
 
-spec = Gem::Specification.new do |s| 
+spec = Gem::Specification.new do |s|
   s.name = "CFPropertyList"
-  s.version = "2.0.15"
+  s.version = "2.0.16"
   s.author = "Christian Kruse"
   s.email = "cjk@wwwtech.de"
   s.homepage = "http://github.com/ckruse/CFPropertyList"
@@ -34,8 +34,8 @@ Rake::RDocTask.new do |rdoc|
   rdoc.options << '--line-numbers' << '--inline-source' << '-c utf8'
 end
 
-Rake::GemPackageTask.new(spec) do |pkg| 
-  pkg.need_tar = true 
+Rake::GemPackageTask.new(spec) do |pkg|
+  pkg.need_tar = true
 end
 
 Rake::TestTask.new do |test|

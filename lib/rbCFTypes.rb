@@ -100,6 +100,10 @@ module CFPropertyList
     def initialize(value = nil,format=CFDate::TIMESTAMP_UNIX)
       if(value.is_a?(Time) || value.nil?) then
         @value = value.nil? ? Time.now : value
+      elsif value.instance_of? Date
+        @value = Time.utc(value.year, value.month, value.day, 0, 0, 0)
+      elsif value.instance_of? DateTime
+        @value = value.to_time.utc
       else
         set_value(value,format)
       end

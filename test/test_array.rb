@@ -20,4 +20,11 @@ class TestArray < Test::Unit::TestCase
     assert_equal raw_xml('array'), plist.to_str(CFPropertyList::List::FORMAT_XML, :formatted => false)
     assert_equal raw_binary('array'), plist.to_str(CFPropertyList::List::FORMAT_BINARY)
   end
+
+  def test_write_enumerator
+    plist = CFPropertyList::List.new
+    plist.value = CFPropertyList.guess([ "object" ].to_enum)
+    assert_equal raw_xml('array'), plist.to_str(CFPropertyList::List::FORMAT_XML, :formatted => false)
+    assert_equal raw_binary('array'), plist.to_str(CFPropertyList::List::FORMAT_BINARY)
+  end
 end

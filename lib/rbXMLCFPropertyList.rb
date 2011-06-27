@@ -33,8 +33,7 @@ module CFPropertyList
       str = doc.to_s(:indent => opts[:formatted])
       str1 = String.new
       first = false
-      str.each_line do
-        |line|
+      str.each_line do |line|
         str1 << line
         unless(first) then
           str1 << "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n" if line =~ /^\s*<\?xml/
@@ -91,8 +90,7 @@ module CFPropertyList
         ary = Array.new
 
         if node.children? then
-          node.children.each do
-            |n|
+          node.children.each do |n|
             ary.push import_xml(n)
           end
         end

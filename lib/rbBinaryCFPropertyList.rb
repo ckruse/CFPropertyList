@@ -122,33 +122,26 @@ module CFPropertyList
 
       nbytes = 1 << length
 
-      val = nil
       buff = fd.read(nbytes)
 
-      case length
-      when 0 then
-        val = buff.unpack("C")
-        val = val[0]
-      when 1 then
-        val = buff.unpack("n")
-        val = val[0]
-      when 2 then
-        val = buff.unpack("N")
-        val = val[0]
-      when 3
-        hiword,loword = buff.unpack("NN")
-        if (hiword & 0x80000000) != 0
-          # 8 byte integers are always signed, and are negative when bit 63 is
-          # set. Decoding into either a Fixnum or Bignum is tricky, however,
-          # because the size of a Fixnum varies among systems, and Ruby
-          # doesn't consider the number to be negative, and won't sign extend.
-          val = -(2**63 - ((hiword & 0x7fffffff) << 32 | loword))
-        else
-          val = hiword << 32 | loword
+      CFInteger.new(
+        case length
+        when 0 then buff.unpack("C")[0]
+        when 1 then buff.unpack("n")[0]
+        when 2 then buff.unpack("N")[0]
+        when 3
+          hiword,loword = buff.unpack("NN")
+          if (hiword & 0x80000000) != 0
+            # 8 byte integers are always signed, and are negative when bit 63 is
+            # set. Decoding into either a Fixnum or Bignum is tricky, however,
+            # because the size of a Fixnum varies among systems, and Ruby
+            # doesn't consider the number to be negative, and won't sign extend.
+            -(2**63 - ((hiword & 0x7fffffff) << 32 | loword))
+          else
+            hiword << 32 | loword
+          end
         end
-      end
-
-      return CFInteger.new(val);
+      )
     end
     protected :read_binary_int
 
@@ -157,21 +150,22 @@ module CFPropertyList
       raise CFFormatError.new("Real greater than 8 bytes: #{length}") if length > 3
 
       nbytes = 1 << length
-      val = nil
       buff = fd.read(nbytes)
 
-      case length
-      when 0 then # 1 byte float? must be an error
-        raise CFFormatError.new("got #{length+1} byte float, must be an error!")
-      when 1 then # 2 byte float? must be an error
-        raise CFFormatError.new("got #{length+1} byte float, must be an error!")
-      when 2 then
-        val = buff.reverse.unpack("f")[0]
-      when 3 then
-        val = buff.reverse.unpack("d")[0]
-      end
-
-      CFReal.new(val)
+      CFReal.new(
+        case length
+        when 0 # 1 byte float? must be an error
+          raise CFFormatError.new("got #{length+1} byte float, must be an error!")
+        when 1 # 2 byte float? must be an error
+          raise CFFormatError.new("got #{length+1} byte float, must be an error!")
+        when 2 then
+          buff.reverse.unpack("f")[0]
+        when 3 then
+          buff.reverse.unpack("d")[0]
+        else
+          fail "unexpected length: #{length}"
+        end
+      )
     end
     protected :read_binary_real
 
@@ -180,21 +174,21 @@ module CFPropertyList
       raise CFFormatError.new("Date greater than 8 bytes: #{length}") if length > 3
 
       nbytes = 1 << length
-      val = nil
       buff = fd.read(nbytes)
 
-      case length
-      when 0 then # 1 byte CFDate is an error
-        raise CFFormatError.new("#{length+1} byte CFDate, error")
-      when 1 then # 2 byte CFDate is an error
-        raise CFFormatError.new("#{length+1} byte CFDate, error")
-      when 2 then
-        val = buff.reverse.unpack("f")[0]
-      when 3 then
-        val = buff.reverse.unpack("d")[0]
-      end
-
-      CFDate.new(val,CFDate::TIMESTAMP_APPLE)
+      CFDate.new(
+        case length
+        when 0 then # 1 byte CFDate is an error
+          raise CFFormatError.new("#{length+1} byte CFDate, error")
+        when 1 then # 2 byte CFDate is an error
+          raise CFFormatError.new("#{length+1} byte CFDate, error")
+        when 2 then
+          buff.reverse.unpack("f")[0]
+        when 3 then
+          buff.reverse.unpack("d")[0]
+        end,
+        CFDate::TIMESTAMP_APPLE
+      )
     end
     protected :read_binary_date
 
@@ -352,12 +346,9 @@ module CFPropertyList
     # pack an +int+ of +nbytes+ with size
     def Binary.pack_it_with_size(nbytes,int)
       case nbytes
-      when 1
-        [int].pack('c')
-      when 2
-        [int].pack('n')
-      when 4
-        [int].pack('N')
+      when 1 then [int].pack('c')
+      when 2 then [int].pack('n')
+      when 4 then [int].pack('N')
       when 8
         [int >> 32, int & 0xFFFFFFFF].pack('NN')
       else
@@ -367,12 +358,9 @@ module CFPropertyList
     
     def Binary.pack_int_array_with_size(nbytes, array)
       case nbytes
-      when 1
-        array.pack('C*')
-      when 2
-        array.pack('n*')
-      when 4
-        array.pack('N*')
+      when 1 then array.pack('C*')
+      when 2 then array.pack('n*')
+      when 4 then array.pack('N*')
       when 8
         array.map { |int| [int >> 32, int & 0xFFFFFFFF].pack('NN') }.join
       else
@@ -382,14 +370,11 @@ module CFPropertyList
 
     # calculate how many bytes are needed to save +count+
     def Binary.bytes_needed(count)
-      if count < 2**8
-        1
-      elsif count < 2**16
-        2
-      elsif count < 2**32
-        4
-      elsif count < 2**64
-        8
+      case
+      when count < 2**8  then 1
+      when count < 2**16 then 2
+      when count < 2**32 then 4
+      when count < 2**64 then 8
       else
         raise CFFormatError.new("Data size too large: #{count}")
       end
@@ -448,45 +433,36 @@ module CFPropertyList
         saved_object_count = @unique_table[val]
       end
 
-      return saved_object_count
+      saved_object_count
     end
 
     # Codes an integer to binary format
     def int_to_binary(value)
       nbytes = 0
-      nbytes = 1 if value > 0xFF # 1 byte integer
+      nbytes = 1  if value > 0xFF # 1 byte integer
       nbytes += 1 if value > 0xFFFF # 4 byte integer
       nbytes += 1 if value > 0xFFFFFFFF # 8 byte integer
-      nbytes = 3 if value < 0 # 8 byte integer, since signed
+      nbytes = 3  if value < 0 # 8 byte integer, since signed
 
-      bdata = Binary.type_bytes(0b0001, nbytes)
-      buff = ""
-
-      if(nbytes < 3)
-        fmt = "N"
-
-        if(nbytes == 0)
-          fmt = "C"
-        elsif(nbytes == 1)
-          fmt = "n"
+      Binary.type_bytes(0b0001, nbytes) <<
+        if nbytes < 3
+          [value].pack(
+            if nbytes == 0    then "C"
+            elsif nbytes == 1 then "n"
+            else "N"
+            end
+          )
+        else
+          # 64 bit signed integer; we need the higher and the lower 32 bit of the value
+          high_word = value >> 32
+          low_word = value & 0xFFFFFFFF
+          [high_word,low_word].pack("NN")
         end
-
-        buff = [value].pack(fmt)
-      else
-        # 64 bit signed integer; we need the higher and the lower 32 bit of the value
-        high_word = value >> 32
-        low_word = value & 0xFFFFFFFF
-        buff = [high_word,low_word].pack("NN")
-      end
-
-      bdata + buff
     end
 
     # Codes a real value to binary format
     def real_to_binary(val)
-      bdata = Binary.type_bytes(0b0010,3)
-      buff = [val].pack("d")
-      bdata + buff.reverse
+      Binary.type_bytes(0b0010,3) << [val].pack("d").reverse
     end
 
     # Converts a numeric value to binary and adds it to the object table
@@ -494,14 +470,13 @@ module CFPropertyList
       saved_object_count = @written_object_count
       @written_object_count += 1
 
-      val = ""
-      if(value.is_a?(CFInteger))
-        val = int_to_binary(value.value)
-      else
-        val = real_to_binary(value.value)
-      end
+      @object_table[saved_object_count] =
+        if(value.is_a?(CFInteger))
+          int_to_binary(value.value)
+        else
+          real_to_binary(value.value)
+        end
 
-      @object_table[saved_object_count] = val
       saved_object_count
     end
 
@@ -512,8 +487,8 @@ module CFPropertyList
 
       val = val.getutc.to_f - CFDate::DATE_DIFF_APPLE_UNIX # CFDate is a real, number of seconds since 01/01/2001 00:00:00 GMT
 
-      bdata = Binary.type_bytes(0b0011, 3)
-      @object_table[saved_object_count] = bdata + [val].pack("d").reverse
+      @object_table[saved_object_count] =
+        (Binary.type_bytes(0b0011, 3) << [val].pack("d").reverse)
 
       saved_object_count
     end
@@ -532,8 +507,8 @@ module CFPropertyList
       saved_object_count = @written_object_count
       @written_object_count += 1
 
-      bdata = Binary.type_bytes(0b0100, val.bytesize)
-      @object_table[saved_object_count] = bdata + val
+      @object_table[saved_object_count] = 
+        (Binary.type_bytes(0b0100, val.bytesize) << val)
 
       saved_object_count
     end
@@ -542,14 +517,14 @@ module CFPropertyList
     def array_to_binary(val)
       saved_object_count = @written_object_count
       @written_object_count += 1
-
       @object_refs += val.value.size
-      bdata = Binary.type_bytes(0b1010, val.value.size) +
+
+      bdata = Binary.type_bytes(0b1010, val.value.size) <<
         Binary.pack_int_array_with_size(object_ref_size,
                                         val.value.map { |v| v.to_binary(self) })
 
       @object_table[saved_object_count] = bdata
-      return saved_object_count
+      saved_object_count
     end
 
     # like an array, but we don't know length ahead of time
@@ -558,17 +533,22 @@ module CFPropertyList
       @written_object_count += 1
 
       size = 0
+      # This destroys our low-memory stream.
+      # However, testing shows that it is faster
+      #   Probably because packing this single Array (in pack_int_array_with_size)
+      #   is faster than packing each individual array member separately
+      #   i.e. to be faster it needs an Enumerator#pack
       binary = val.value.map do |v|
         size += 1;
         v.to_binary(self)
       end
       @object_refs += size
 
-      bdata = Binary.type_bytes(0b1010, size) +
+      bdata = Binary.type_bytes(0b1010, size) <<
         Binary.pack_int_array_with_size(object_ref_size, binary)
 
       @object_table[saved_object_count] = bdata
-      return saved_object_count
+      saved_object_count
     end
 
     # Convert dictionary to binary format and add it to the object table
@@ -576,12 +556,12 @@ module CFPropertyList
       saved_object_count = @written_object_count
       @written_object_count += 1
 
-      keys_and_values = val.value.keys.map { |k| CFString.new(k).to_binary(self) }
-      keys_and_values += val.value.keys.map { |k| val.value[k].to_binary(self) }
+      keys_and_values =  val.value.keys.map { |k| CFString.new(k).to_binary(self) }
+      keys_and_values.concat(val.value.values.map { |v| v.to_binary(self) })
       
       @object_refs += val.value.keys.size
 
-      bdata = Binary.type_bytes(0b1101,val.value.size) +
+      bdata = Binary.type_bytes(0b1101,val.value.size) <<
         Binary.pack_int_array_with_size(object_ref_size, keys_and_values)
 
       @object_table[saved_object_count] = bdata

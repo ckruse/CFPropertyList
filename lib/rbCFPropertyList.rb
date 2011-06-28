@@ -101,34 +101,32 @@ module CFPropertyList
   #
   #  cftypes = CFPropertyList.guess(x,:convert_unknown_to_string => true,:converter_method => :to_hash)
   def guess(object, options = {})
-    if(object.is_a?(Fixnum) || object.is_a?(Integer))
-      CFInteger.new(object)
-    elsif(object.is_a?(Float) || (Object.const_defined?('BigDecimal') and object.is_a?(BigDecimal)))
-      CFReal.new(object)
-    elsif(object.is_a?(TrueClass) || object.is_a?(FalseClass))
-      CFBoolean.new(object)
-    elsif(object.is_a?(String))
+    case object
+    when Fixnum, Integer       then CFInteger.new(object)
+    when Float                 then CFReal.new(object)
+    when TrueClass, FalseClass then CFBoolean.new(object)
+
+    when String
       object.blob? ? CFData.new(object, CFData::DATA_RAW) : CFString.new(object)
-    elsif(object.respond_to?(:read))
-      CFData.new(object.read(), CFData::DATA_RAW)
-    elsif(object.is_a?(Time) || object.is_a?(DateTime) || object.is_a?(Date))
-      CFDate.new(object)
-    elsif(object.is_a?(Array))
+
+    when Time, DateTime, Date  then CFDate.new(object)
+
+    when Array
       ary = Array.new
       object.each do |o|
         ary.push CFPropertyList.guess(o, options)
       end
-
       CFArray.new(ary)
-    elsif(object.is_a?(Hash))
+
+    when Hash
       hsh = Hash.new
       object.each_pair do |k,v|
         k = k.to_s if k.is_a?(Symbol)
         hsh[k] = CFPropertyList.guess(v, options)
       end
-
       CFDictionary.new(hsh)
-    elsif(object.is_a?(Enumerator))
+
+    when Enumerator
       CFEnumerator.new(
         Enumerator.new do |yielder|
           object.each do |o|
@@ -137,13 +135,19 @@ module CFPropertyList
         end
       )
 
-    elsif options[:converter_method] and object.respond_to?(options[:converter_method])
-      CFPropertyList.guess(object.send(options[:converter_method]),options)
-    elsif options[:convert_unknown_to_string]
-      CFString.new(object.to_s)
-
     else
-      raise CFTypeError.new("Unknown class #{object.class.to_s}! Try using :convert_unknown_to_string if you want to use unknown object types!")
+      case
+      when Object.const_defined?('BigDecimal') && object.is_a?(BigDecimal)
+        CFReal.new(object)
+      when object.respond_to?(:read)
+        CFData.new(object.read(), CFData::DATA_RAW)
+      when options[:converter_method] && object.respond_to?(options[:converter_method])
+        CFPropertyList.guess(object.send(options[:converter_method]),options)
+      when options[:convert_unknown_to_string]
+        CFString.new(object.to_s)
+      else
+        raise CFTypeError.new("Unknown class #{object.class.to_s}. Try using :convert_unknown_to_string if you want to use unknown object types!")
+      end
     end
   end
 

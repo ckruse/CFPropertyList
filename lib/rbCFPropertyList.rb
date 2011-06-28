@@ -101,39 +101,47 @@ module CFPropertyList
   #
   #  cftypes = CFPropertyList.guess(x,:convert_unknown_to_string => true,:converter_method => :to_hash)
   def guess(object, options = {})
-    if(object.is_a?(Fixnum) || object.is_a?(Integer)) then
-      return CFInteger.new(object)
-    elsif(object.is_a?(Float) || (Object.const_defined?('BigDecimal') and object.is_a?(BigDecimal))) then
-      return CFReal.new(object)
-    elsif(object.is_a?(TrueClass) || object.is_a?(FalseClass)) then
-      return CFBoolean.new(object)
-    elsif(object.is_a?(String)) then
-      return object.blob? ? CFData.new(object, CFData::DATA_RAW) : CFString.new(object)
-    elsif(object.respond_to?(:read)) then
-      return CFData.new(object.read(), CFData::DATA_RAW)
-    elsif(object.is_a?(Time) || object.is_a?(DateTime) || object.is_a?(Date)) then
-      return CFDate.new(object)
-    elsif(object.is_a?(Array)) then
+    if(object.is_a?(Fixnum) || object.is_a?(Integer))
+      CFInteger.new(object)
+    elsif(object.is_a?(Float) || (Object.const_defined?('BigDecimal') and object.is_a?(BigDecimal)))
+      CFReal.new(object)
+    elsif(object.is_a?(TrueClass) || object.is_a?(FalseClass))
+      CFBoolean.new(object)
+    elsif(object.is_a?(String))
+      object.blob? ? CFData.new(object, CFData::DATA_RAW) : CFString.new(object)
+    elsif(object.respond_to?(:read))
+      CFData.new(object.read(), CFData::DATA_RAW)
+    elsif(object.is_a?(Time) || object.is_a?(DateTime) || object.is_a?(Date))
+      CFDate.new(object)
+    elsif(object.is_a?(Array))
       ary = Array.new
-      object.each do
-        |o|
+      object.each do |o|
         ary.push CFPropertyList.guess(o, options)
       end
 
-      return CFArray.new(ary)
-    elsif(object.is_a?(Hash)) then
+      CFArray.new(ary)
+    elsif(object.is_a?(Hash))
       hsh = Hash.new
-      object.each_pair do
-        |k,v|
+      object.each_pair do |k,v|
         k = k.to_s if k.is_a?(Symbol)
         hsh[k] = CFPropertyList.guess(v, options)
       end
 
-      return CFDictionary.new(hsh)
-    elsif options[:converter_method] and object.respond_to?(options[:converter_method]) then
-      return CFPropertyList.guess(object.send(options[:converter_method]),options)
-    elsif options[:convert_unknown_to_string] then
-      return CFString.new(object.to_s)
+      CFDictionary.new(hsh)
+    elsif(object.is_a?(Enumerator))
+      CFEnumerator.new(
+        Enumerator.new do |yielder|
+          object.each do |o|
+            yielder << CFPropertyList.guess(o, options)
+          end
+        end
+      )
+
+    elsif options[:converter_method] and object.respond_to?(options[:converter_method])
+      CFPropertyList.guess(object.send(options[:converter_method]),options)
+    elsif options[:convert_unknown_to_string]
+      CFString.new(object.to_s)
+
     else
       raise CFTypeError.new("Unknown class #{object.class.to_s}! Try using :convert_unknown_to_string if you want to use unknown object types!")
     end

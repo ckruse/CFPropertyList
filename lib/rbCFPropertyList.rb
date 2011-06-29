@@ -349,6 +349,17 @@ class Array
   end
 end
 
+class Enumerator
+  # convert an array to plist format
+  def to_plist(options={})
+    options[:plist_format] ||= CFPropertyList::List::FORMAT_BINARY
+
+    plist = CFPropertyList::List.new
+    plist.value = CFPropertyList.guess(self, options)
+    plist.to_str(options[:plist_format])
+  end
+end
+
 class Hash
   # convert a hash to plist format
   def to_plist(options={})

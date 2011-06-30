@@ -65,6 +65,8 @@ module CFPropertyList
 
       binary_str = "bplist00"
 
+      @object_refs = count_object_refs(opts[:root])
+
       opts[:root].to_binary(self)
 
       next_offset = 8
@@ -89,7 +91,7 @@ module CFPropertyList
         end
       end
 
-      binary_str << [offset_size, object_ref_size].pack("x6CC")
+      binary_str << [offset_size, object_ref_size(@object_refs)].pack("x6CC")
       binary_str << [@object_table.size].pack("x4N")
       binary_str << [0].pack("x4N")
       binary_str << [table_offset].pack("x4N")
@@ -97,8 +99,8 @@ module CFPropertyList
       binary_str
     end
 
-    def object_ref_size
-      @object_ref_size ||= Binary.bytes_needed(@object_refs)
+    def object_ref_size object_refs
+      Binary.bytes_needed(object_refs)
     end
 
     # read a „null” type (i.e. null byte, marker byte, bool value)
@@ -256,7 +258,7 @@ module CFPropertyList
       ary = []
 
       # first: read object refs
-      if(length != 0) then
+      if(length != 0)
         buff = fd.read(length * @object_ref_size)
         objects = buff.unpack(@object_ref_size == 1 ? "C*" : "n*")
 
@@ -400,6 +402,29 @@ module CFPropertyList
       end
     end
     
+    def count_object_refs(object)
+      case object
+      when CFArray
+        contained_refs = 0
+        object.value.each do |element|
+          if CFArray === element || CFDictionary === element
+            contained_refs += count_object_refs(element)
+          end
+        end
+        return object.value.size + contained_refs
+      when CFDictionary
+        contained_refs = 0
+        object.value.each_value do |value|
+          if CFArray === value || CFDictionary === value
+            contained_refs += count_object_refs(value)
+          end
+        end
+        return object.value.keys.size * 2 + contained_refs
+      else
+        return 0
+      end
+    end
+
     def Binary.ascii_string?(str)
       if str.respond_to?(:ascii_only?)
         str.ascii_only?
@@ -410,30 +435,22 @@ module CFPropertyList
     
     # Uniques and transforms a string value to binary format and adds it to the object table
     def string_to_binary(val)
-      saved_object_count = -1
-
-      unless(@unique_table.has_key?(val)) then
-        saved_object_count = @written_object_count
-        @written_object_count += 1
-        @unique_table[val] = saved_object_count
-
+      @unique_table[val] ||= begin
         if !Binary.ascii_string?(val)
           utf8_strlen = Binary.charset_strlen(val, "UTF-8")
           val = Binary.charset_convert(val,"UTF-8","UTF-16BE")
           bdata = Binary.type_bytes(0b0110, Binary.charset_strlen(val,"UTF-16BE"))
 
           val.force_encoding("ASCII-8BIT") if val.respond_to?("encode")
-          @object_table[saved_object_count] = bdata + val
+          @object_table[@written_object_count] = bdata << val
         else
           utf8_strlen = val.bytesize
           bdata = Binary.type_bytes(0b0101,val.bytesize)
-          @object_table[saved_object_count] = bdata + val
+          @object_table[@written_object_count] = bdata << val
         end
-      else
-        saved_object_count = @unique_table[val]
+        @written_object_count += 1
+        @written_object_count - 1
       end
-
-      saved_object_count
     end
 
     # Codes an integer to binary format
@@ -467,61 +484,55 @@ module CFPropertyList
 
     # Converts a numeric value to binary and adds it to the object table
     def num_to_binary(value)
-      saved_object_count = @written_object_count
-      @written_object_count += 1
-
-      @object_table[saved_object_count] =
-        if(value.is_a?(CFInteger))
+      @object_table[@written_object_count] =
+        if value.is_a?(CFInteger)
           int_to_binary(value.value)
         else
           real_to_binary(value.value)
         end
 
-      saved_object_count
+      @written_object_count += 1
+      @written_object_count - 1
     end
 
     # Convert date value (apple format) to binary and adds it to the object table
     def date_to_binary(val)
-      saved_object_count = @written_object_count
-      @written_object_count += 1
-
       val = val.getutc.to_f - CFDate::DATE_DIFF_APPLE_UNIX # CFDate is a real, number of seconds since 01/01/2001 00:00:00 GMT
 
-      @object_table[saved_object_count] =
+      @object_table[@written_object_count] =
         (Binary.type_bytes(0b0011, 3) << [val].pack("d").reverse)
 
-      saved_object_count
+      @written_object_count += 1
+      @written_object_count - 1
     end
 
     # Convert a bool value to binary and add it to the object table
     def bool_to_binary(val)
-      saved_object_count = @written_object_count
-      @written_object_count += 1
 
-      @object_table[saved_object_count] = val ? "\x9" : "\x8" # 0x9 is 1001, type indicator for true; 0x8 is 1000, type indicator for false
-      saved_object_count
+      @object_table[@written_object_count] = val ? "\x9" : "\x8" # 0x9 is 1001, type indicator for true; 0x8 is 1000, type indicator for false
+      @written_object_count += 1
+      @written_object_count - 1
     end
 
     # Convert data value to binary format and add it to the object table
     def data_to_binary(val)
-      saved_object_count = @written_object_count
-      @written_object_count += 1
-
-      @object_table[saved_object_count] = 
+      @object_table[@written_object_count] = 
         (Binary.type_bytes(0b0100, val.bytesize) << val)
 
-      saved_object_count
+      @written_object_count += 1
+      @written_object_count - 1
     end
 
     # Convert array to binary format and add it to the object table
     def array_to_binary(val)
       saved_object_count = @written_object_count
       @written_object_count += 1
-      @object_refs += val.value.size
+      #@object_refs += val.value.size
 
+      values = val.value.map { |v| v.to_binary(self) }
       bdata = Binary.type_bytes(0b1010, val.value.size) <<
-        Binary.pack_int_array_with_size(object_ref_size,
-                                        val.value.map { |v| v.to_binary(self) })
+        Binary.pack_int_array_with_size(object_ref_size(@object_refs),
+                                        values)
 
       @object_table[saved_object_count] = bdata
       saved_object_count
@@ -545,7 +556,7 @@ module CFPropertyList
       @object_refs += size
 
       bdata = Binary.type_bytes(0b1010, size) <<
-        Binary.pack_int_array_with_size(object_ref_size, binary)
+        Binary.pack_int_array_with_size(object_ref_size(@object_refs), binary)
 
       @object_table[saved_object_count] = bdata
       saved_object_count
@@ -556,13 +567,13 @@ module CFPropertyList
       saved_object_count = @written_object_count
       @written_object_count += 1
 
-      keys_and_values =  val.value.keys.map { |k| CFString.new(k).to_binary(self) }
+      #@object_refs += val.value.keys.size * 2
+
+      keys_and_values = val.value.keys.map { |k| CFString.new(k).to_binary(self) }
       keys_and_values.concat(val.value.values.map { |v| v.to_binary(self) })
-      
-      @object_refs += val.value.keys.size
 
       bdata = Binary.type_bytes(0b1101,val.value.size) <<
-        Binary.pack_int_array_with_size(object_ref_size, keys_and_values)
+        Binary.pack_int_array_with_size(object_ref_size(@object_refs), keys_and_values)
 
       @object_table[saved_object_count] = bdata
       return saved_object_count

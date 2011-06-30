@@ -207,11 +207,13 @@ module CFPropertyList
     end
   end
 
+=begin
   class CFEnumerator < CFArray
     def to_binary(bplist)
       bplist.enum_to_binary(self)
     end
   end
+=end
 
   # this class contains a hash of values
   class CFDictionary < CFType

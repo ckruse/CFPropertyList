@@ -538,6 +538,24 @@ module CFPropertyList
       saved_object_count
     end
 
+    # Convert dictionary to binary format and add it to the object table
+    def dict_to_binary(val)
+      saved_object_count = @written_object_count
+      @written_object_count += 1
+
+      #@object_refs += val.value.keys.size * 2
+
+      keys_and_values = val.value.keys.map { |k| CFString.new(k).to_binary(self) }
+      keys_and_values.concat(val.value.values.map { |v| v.to_binary(self) })
+
+      bdata = Binary.type_bytes(0b1101,val.value.size) <<
+        Binary.pack_int_array_with_size(object_ref_size(@object_refs), keys_and_values)
+
+      @object_table[saved_object_count] = bdata
+      return saved_object_count
+    end
+
+=begin It is difficult to reap benefits from an Enumerator
     # like an array, but we don't know length ahead of time
     def enum_to_binary(val)
       saved_object_count = @written_object_count
@@ -561,23 +579,8 @@ module CFPropertyList
       @object_table[saved_object_count] = bdata
       saved_object_count
     end
+=end
 
-    # Convert dictionary to binary format and add it to the object table
-    def dict_to_binary(val)
-      saved_object_count = @written_object_count
-      @written_object_count += 1
-
-      #@object_refs += val.value.keys.size * 2
-
-      keys_and_values = val.value.keys.map { |k| CFString.new(k).to_binary(self) }
-      keys_and_values.concat(val.value.values.map { |v| v.to_binary(self) })
-
-      bdata = Binary.type_bytes(0b1101,val.value.size) <<
-        Binary.pack_int_array_with_size(object_ref_size(@object_refs), keys_and_values)
-
-      @object_table[saved_object_count] = bdata
-      return saved_object_count
-    end
   end
 end
 

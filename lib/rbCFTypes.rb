@@ -16,19 +16,13 @@ module CFPropertyList
     # value of the type
     attr_accessor :value
 
-
-    # set internal value to parameter value by default
     def initialize(value=nil)
       @value = value
     end
 
-    # convert type to XML
-    def to_xml
-    end
+    def to_xml; end
 
-    # convert type to binary
-    def to_binary(bplist)
-    end
+    def to_binary(bplist) end
   end
 
   # This class holds string values, both, UTF-8 and UTF-16BE
@@ -38,12 +32,12 @@ module CFPropertyList
     def to_xml
       n = LibXML::XML::Node.new('string')
       n << LibXML::XML::Node.new_text(@value) unless @value.nil?
-      return n
+      n
     end
 
     # convert to binary
     def to_binary(bplist)
-      return bplist.string_to_binary(@value);
+      bplist.string_to_binary(@value);
     end
   end
 
@@ -56,7 +50,7 @@ module CFPropertyList
 
     # convert to binary
     def to_binary(bplist)
-      return bplist.num_to_binary(self)
+      bplist.num_to_binary(self)
     end
   end
 
@@ -69,7 +63,7 @@ module CFPropertyList
 
     # convert to binary
     def to_binary(bplist)
-      return bplist.num_to_binary(self)
+      bplist.num_to_binary(self)
     end
   end
 
@@ -121,20 +115,20 @@ module CFPropertyList
     # get timestamp, either UNIX or Apple timestamp
     def get_value(format=CFDate::TIMESTAMP_UNIX)
       if(format == CFDate::TIMESTAMP_UNIX) then
-        return @value.to_i
+        @value.to_i
       else
-        return @value.to_f - CFDate::DATE_DIFF_APPLE_UNIX
+        @value.to_f - CFDate::DATE_DIFF_APPLE_UNIX
       end
     end
 
     # convert to XML
     def to_xml
-      return LibXML::XML::Node.new('date') << LibXML::XML::Node.new_text(CFDate::date_string(@value))
+      LibXML::XML::Node.new('date') << LibXML::XML::Node.new_text(CFDate::date_string(@value))
     end
 
     # convert to binary
     def to_binary(bplist)
-      return bplist.date_to_binary(@value)
+      bplist.date_to_binary(@value)
     end
   end
 
@@ -142,12 +136,12 @@ module CFPropertyList
   class CFBoolean < CFType
     # convert to XML
     def to_xml
-      return LibXML::XML::Node.new(@value ? 'true' : 'false')
+      LibXML::XML::Node.new(@value ? 'true' : 'false')
     end
 
     # convert to binary
     def to_binary(bplist)
-      return bplist.bool_to_binary(@value);
+      bplist.bool_to_binary(@value);
     end
   end
 
@@ -160,7 +154,7 @@ module CFPropertyList
 
     # set value to defined state, either base64 encoded or raw
     def initialize(value=nil,format=DATA_BASE64)
-      if(format == DATA_RAW) then
+      if(format == DATA_RAW)
         @raw_value = value
         @raw_value.blob = true
       else
@@ -182,12 +176,12 @@ module CFPropertyList
 
     # convert to XML
     def to_xml
-      return LibXML::XML::Node.new('data') << LibXML::XML::Node.new_text(encoded_value())
+      LibXML::XML::Node.new('data') << LibXML::XML::Node.new_text(encoded_value())
     end
 
     # convert to binary
     def to_binary(bplist)
-      return bplist.data_to_binary(decoded_value())
+      bplist.data_to_binary(decoded_value())
     end
   end
 
@@ -201,19 +195,25 @@ module CFPropertyList
     # convert to XML
     def to_xml
       n = LibXML::XML::Node.new('array')
-      @value.each do
-        |v|
+      @value.each do |v|
         n << v.to_xml
       end
-
-      return n
+      n
     end
 
     # convert to binary
     def to_binary(bplist)
-      return bplist.array_to_binary(self)
+      bplist.array_to_binary(self)
     end
   end
+
+=begin
+  class CFEnumerator < CFArray
+    def to_binary(bplist)
+      bplist.enum_to_binary(self)
+    end
+  end
+=end
 
   # this class contains a hash of values
   class CFDictionary < CFType
@@ -225,19 +225,17 @@ module CFPropertyList
     # convert to XML
     def to_xml
       n = LibXML::XML::Node.new('dict')
-      @value.each_pair do
-        |key,value|
+      @value.each_pair do |key,value|
         k = LibXML::XML::Node.new('key') << LibXML::XML::Node.new_text(key)
         n << k
         n << value.to_xml
       end
-
-      return n
+      n
     end
 
     # convert to binary
     def to_binary(bplist)
-      return bplist.dict_to_binary(self)
+      bplist.dict_to_binary(self)
     end
   end
 end

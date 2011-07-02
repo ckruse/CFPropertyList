@@ -55,7 +55,7 @@ module CFPropertyList
       else
         n.content
       end
-      
+
       content.force_encoding('UTF-8') if content.respond_to?(:force_encoding)
       content
     end
@@ -70,8 +70,7 @@ module CFPropertyList
         key = nil
 
         if node.children? then
-          node.children.each do
-            |n|
+          node.children.each do |n|
             next if n.text? # avoid a bug of libxml
 
             if n.name == "key" then

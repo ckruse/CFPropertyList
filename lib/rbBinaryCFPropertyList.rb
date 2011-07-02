@@ -226,7 +226,7 @@ module CFPropertyList
         utf8_str = Iconv.conv("UTF-8",charset,str)
         size = utf8_str.scan(/./mu).size
       end
-      
+
       # UTF-16 code units in the range D800-DBFF are the beginning of
       # a surrogate pair, and count as one additional character for
       # length calculation.
@@ -237,7 +237,7 @@ module CFPropertyList
           str.split('').each_slice(2) { |pair| size += 1 if ("\xd8".."\xdb").include?(pair[0]) }
         end
       end
-      
+
       size
     end
 
@@ -357,7 +357,7 @@ module CFPropertyList
         raise CFFormatError.new("Don't know how to pack #{nbytes} byte integer")
       end
     end
-    
+
     def Binary.pack_int_array_with_size(nbytes, array)
       case nbytes
       when 1 then array.pack('C*')
@@ -401,7 +401,7 @@ module CFPropertyList
         end
       end
     end
-    
+
     def count_object_refs(object)
       case object
       when CFArray
@@ -432,7 +432,7 @@ module CFPropertyList
         str !~ /[\x80-\xFF]/mn
       end
     end
-    
+
     # Uniques and transforms a string value to binary format and adds it to the object table
     def string_to_binary(val)
       @unique_table[val] ||= begin
@@ -516,7 +516,7 @@ module CFPropertyList
 
     # Convert data value to binary format and add it to the object table
     def data_to_binary(val)
-      @object_table[@written_object_count] = 
+      @object_table[@written_object_count] =
         (Binary.type_bytes(0b0100, val.bytesize) << val)
 
       @written_object_count += 1

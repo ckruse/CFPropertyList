@@ -111,7 +111,7 @@ module CFPropertyList
 
     when Time, DateTime, Date  then CFDate.new(object)
 
-    when Array, Enumerator
+    when Array, Enumerator, Enumerable::Enumerator
       ary = Array.new
       object.each do |o|
         ary.push CFPropertyList.guess(o, options)

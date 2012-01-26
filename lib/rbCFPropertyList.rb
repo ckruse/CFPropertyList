@@ -125,18 +125,6 @@ module CFPropertyList
         hsh[k] = CFPropertyList.guess(v, options)
       end
       CFDictionary.new(hsh)
-
-=begin
-    when Enumerator
-      CFEnumerator.new(
-        Enumerator.new do |yielder|
-          object.each do |o|
-            yielder << CFPropertyList.guess(o, options)
-          end
-        end
-      )
-=end
-
     else
       case
       when Object.const_defined?('BigDecimal') && object.is_a?(BigDecimal)

@@ -99,7 +99,7 @@ module CFPropertyList
   # +convert_unknown_to_string+::   Convert unknown objects to string calling to_str()
   # +converter_method+::    Convert unknown objects to known objects calling +method_name+
   #
-  #  cftypes = CFPropertyList.guess(x,:convert_unknown_to_string => true,:converter_method => :to_hash)
+  #  cftypes = CFPropertyList.guess(x,:convert_unknown_to_string => true,:converter_method => :to_hash, :converter_with_opts => true)
   def guess(object, options = {})
     case object
     when Fixnum, Integer       then CFInteger.new(object)
@@ -132,7 +132,11 @@ module CFPropertyList
       when object.respond_to?(:read)
         CFData.new(object.read(), CFData::DATA_RAW)
       when options[:converter_method] && object.respond_to?(options[:converter_method])
-        CFPropertyList.guess(object.send(options[:converter_method]),options)
+        if options[:converter_with_opts]
+          CFPropertyList.guess(object.send(options[:converter_method],options),options)
+        else
+          CFPropertyList.guess(object.send(options[:converter_method]),options)
+        end
       when options[:convert_unknown_to_string]
         CFString.new(object.to_s)
       else

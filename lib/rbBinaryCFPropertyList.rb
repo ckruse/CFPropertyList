@@ -435,6 +435,8 @@ module CFPropertyList
 
     # Uniques and transforms a string value to binary format and adds it to the object table
     def string_to_binary(val)
+      val = val.to_s
+
       @unique_table[val] ||= begin
         if !Binary.ascii_string?(val)
           utf8_strlen = Binary.charset_strlen(val, "UTF-8")

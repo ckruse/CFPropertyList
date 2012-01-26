@@ -556,33 +556,6 @@ module CFPropertyList
       @object_table[saved_object_count] = bdata
       return saved_object_count
     end
-
-=begin It is difficult to reap benefits from an Enumerator
-    # like an array, but we don't know length ahead of time
-    def enum_to_binary(val)
-      saved_object_count = @written_object_count
-      @written_object_count += 1
-
-      size = 0
-      # This destroys our low-memory stream.
-      # However, testing shows that it is faster
-      #   Probably because packing this single Array (in pack_int_array_with_size)
-      #   is faster than packing each individual array member separately
-      #   i.e. to be faster it needs an Enumerator#pack
-      binary = val.value.map do |v|
-        size += 1;
-        v.to_binary(self)
-      end
-      @object_refs += size
-
-      bdata = Binary.type_bytes(0b1010, size) <<
-        Binary.pack_int_array_with_size(object_ref_size(@object_refs), binary)
-
-      @object_table[saved_object_count] = bdata
-      saved_object_count
-    end
-=end
-
   end
 end
 

@@ -226,7 +226,7 @@ module CFPropertyList
     def to_xml
       n = LibXML::XML::Node.new('dict')
       @value.each_pair do |key,value|
-        k = LibXML::XML::Node.new('key') << LibXML::XML::Node.new_text(key)
+        k = LibXML::XML::Node.new('key') << LibXML::XML::Node.new_text(key.to_s)
         n << k
         n << value.to_xml
       end

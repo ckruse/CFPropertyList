@@ -8,12 +8,12 @@ require 'reference'
 
 class TestArray < Test::Unit::TestCase
   include Reference
-  
+
   def test_read_array
     assert_equal [ "object" ], parsed_xml('array')
     assert_equal [ "object" ], parsed_binary('array')
   end
-  
+
   def test_write_array
     plist = CFPropertyList::List.new
     plist.value = CFPropertyList.guess([ "object" ])
@@ -29,12 +29,20 @@ class TestArray < Test::Unit::TestCase
   end
 
   def test_big_array
-    require 'mongo'
-    arr = Marshal.load File.read('test/reference/big_array.rb')
+    arr = []
+    100.times do |i|
+      elem = {}
+
+      500.times do |j|
+        elem[j.to_s] = i
+      end
+
+      arr.push elem
+    end
+
     plist = CFPropertyList::List.new
-    plist.value = CFPropertyList.guess(
-      arr, :converter_method => :to_plist_item,:convert_unknown_to_string => true
-    )
+    plist.value = CFPropertyList.guess(arr)
+
     assert_equal raw_xml('big_array'), plist.to_str(CFPropertyList::List::FORMAT_XML, :formatted => false)
     assert_equal raw_binary('big_array'), plist.to_str(CFPropertyList::List::FORMAT_BINARY)
   end

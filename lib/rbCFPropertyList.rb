@@ -106,9 +106,8 @@ rescue NameError => e
 end
 
 begin
-  #require dirname + '/rbLibXMLParser.rb'
+  require dirname + '/rbLibXMLParser.rb'
   try_nokogiri = false
-  raise LoadError.new "not found"
 rescue LoadError => e
   try_nokogiri = true
 end

@@ -20,7 +20,8 @@ module CFPropertyList
       @value = value
     end
 
-    def to_xml; end
+    def to_xml(parser)
+    end
 
     def to_binary(bplist) end
   end
@@ -29,9 +30,9 @@ module CFPropertyList
   # It will convert the value to UTF-16BE if necessary (i.e. if non-ascii char contained)
   class CFString < CFType
     # convert to XML
-    def to_xml
-      n = LibXML::XML::Node.new('string')
-      n << LibXML::XML::Node.new_text(@value) unless @value.nil?
+    def to_xml(parser)
+      n = parser.new_node('string')
+      n = parser.append_node(n, parser.new_text(@value)) unless @value.nil?
       n
     end
 
@@ -44,8 +45,10 @@ module CFPropertyList
   # This class holds integer/fixnum values
   class CFInteger < CFType
     # convert to XML
-    def to_xml
-      return LibXML::XML::Node.new('integer') << LibXML::XML::Node.new_text(@value.to_s)
+    def to_xml(parser)
+      n = parser.new_node('integer')
+      n = parser.append_node(n, parser.new_text(@value.to_s))
+      n
     end
 
     # convert to binary
@@ -57,8 +60,10 @@ module CFPropertyList
   # This class holds float values
   class CFReal < CFType
     # convert to XML
-    def to_xml
-      return LibXML::XML::Node.new('real') << LibXML::XML::Node.new_text(@value.to_s)
+    def to_xml(parser)
+      n = parser.new_node('real')
+      n = parser.append_node(n, parser.new_text(@value.to_s))
+      n
     end
 
     # convert to binary
@@ -122,8 +127,10 @@ module CFPropertyList
     end
 
     # convert to XML
-    def to_xml
-      LibXML::XML::Node.new('date') << LibXML::XML::Node.new_text(CFDate::date_string(@value))
+    def to_xml(parser)
+      n = parser.new_node('date')
+      n = parser.append_node(n, parser.new_text(CFDate::date_string(@value)))
+      n
     end
 
     # convert to binary
@@ -135,8 +142,8 @@ module CFPropertyList
   # This class contains a boolean value
   class CFBoolean < CFType
     # convert to XML
-    def to_xml
-      LibXML::XML::Node.new(@value ? 'true' : 'false')
+    def to_xml(parser)
+      parser.new_node(@value ? 'true' : 'false')
     end
 
     # convert to binary
@@ -175,8 +182,10 @@ module CFPropertyList
     end
 
     # convert to XML
-    def to_xml
-      LibXML::XML::Node.new('data') << LibXML::XML::Node.new_text(encoded_value())
+    def to_xml(parser)
+      n = parser.new_node('data')
+      n = parser.append_node(n, parser.new_text(encoded_value()))
+      n
     end
 
     # convert to binary
@@ -193,10 +202,10 @@ module CFPropertyList
     end
 
     # convert to XML
-    def to_xml
-      n = LibXML::XML::Node.new('array')
+    def to_xml(parser)
+      n = parser.new_node('array')
       @value.each do |v|
-        n << v.to_xml
+        n = parser.append_node(n, v.to_xml(parser))
       end
       n
     end
@@ -215,12 +224,12 @@ module CFPropertyList
     end
 
     # convert to XML
-    def to_xml
-      n = LibXML::XML::Node.new('dict')
-      @value.each_pair do |key,value|
-        k = LibXML::XML::Node.new('key') << LibXML::XML::Node.new_text(key.to_s)
-        n << k
-        n << value.to_xml
+    def to_xml(parser)
+      n = parser.new_node('dict')
+      @value.each_pair do |key, value|
+        k = parser.append_node(parser.new_node('key'), parser.new_text(key.to_s))
+        n = parser.append_node(n, k)
+        n = parser.append_node(n, value.to_xml(parser))
       end
       n
     end

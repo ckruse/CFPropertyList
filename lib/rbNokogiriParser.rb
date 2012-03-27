@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+require 'nokogiri'
+
 module CFPropertyList
   # XML parser
   class XML < ParserInterface
@@ -9,28 +11,31 @@ module CFPropertyList
     # * :data - The data to parse
     def load(opts)
       if(opts.has_key?(:file)) then
-        doc = LibXML::XML::Document.file(opts[:file],:options => LibXML::XML::Parser::Options::NOBLANKS|LibXML::XML::Parser::Options::NOENT)
+        File.open { |fd| doc = Nokogiri::XML::Document.parse(fd, nil, nil, Nokogiri::XML::ParseOptions::NOBLANKS|Nokogiri::XML::ParseOptions::NOENT) }
       else
-        doc = LibXML::XML::Document.string(opts[:data],:options => LibXML::XML::Parser::Options::NOBLANKS|LibXML::XML::Parser::Options::NOENT)
+        doc = Nokogiri::XML::Document.parse(opts[:data], nil, nil, Nokogiri::XML::ParseOptions::NOBLANKS|Nokogiri::XML::ParseOptions::NOENT)
       end
 
-      root = doc.root.first
+      root = doc.root.children.first
       return import_xml(root)
     end
 
     # serialize CFPropertyList object to XML
     # opts = {}:: Specify options: :formatted - Use indention and line breaks
     def to_str(opts={})
-      doc = LibXML::XML::Document.new
+      doc = Nokogiri::XML::Document.new
+      @doc = doc
 
-      doc.root = LibXML::XML::Node.new('plist')
-      doc.encoding = LibXML::XML::Encoding::UTF_8
+      doc.root = doc.create_element 'plist', :version => '1.0'
+      doc.encoding = 'UTF-8'
 
-      doc.root['version'] = '1.0'
-      doc.root << opts[:root].to_xml()
+      doc.root << opts[:root].to_xml(self)
 
       # ugly hack, but there's no other possibility I know
-      str = doc.to_s(:indent => opts[:formatted])
+      s_opts = Nokogiri::XML::Node::SaveOptions::AS_XML
+      s_opts |= Nokogiri::XML::Node::SaveOptions::FORMAT if opts[:formatted]
+
+      str = doc.serialize(:save_with => s_opts)
       str1 = String.new
       first = false
       str.each_line do |line|
@@ -46,14 +51,26 @@ module CFPropertyList
       return str1
     end
 
+    def new_node(name)
+      @doc.create_element name
+    end
+
+    def new_text(val)
+      @doc.create_text_node val
+    end
+
+    def append_node(parent, child)
+      parent << child
+    end
+
     protected
 
     # get the value of a DOM node
     def get_value(n)
-      content = if n.children?
-        n.first.content
-      else
+      content = if n.children.empty?
         n.content
+      else
+        n.children.first.content
       end
 
       content.force_encoding('UTF-8') if content.respond_to?(:force_encoding)
@@ -68,9 +85,10 @@ module CFPropertyList
       when 'dict'
         hsh = Hash.new
         key = nil
+        children = node.children
 
-        if node.children? then
-          node.children.each do |n|
+        unless children.empty? then
+          children.each do |n|
             next if n.text? # avoid a bug of libxml
             next if n.comment?
 
@@ -88,9 +106,10 @@ module CFPropertyList
 
       when 'array'
         ary = Array.new
+        children = node.children
 
-        if node.children? then
-          node.children.each do |n|
+        unless children.empty? then
+          children.each do |n|
             ary.push import_xml(n)
           end
         end

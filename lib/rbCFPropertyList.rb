@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-require 'libxml'
 require 'kconv'
 require 'date'
 require 'time'
@@ -56,6 +55,17 @@ module CFPropertyList
       return true
     end
   end
+
+  class XMLParserInterface < ParserInterface
+    def new_node(name)
+    end
+
+    def new_text(val)
+    end
+
+    def append_node(parent, child)
+    end
+  end
 end
 
 class String
@@ -82,7 +92,6 @@ end
 dirname = File.dirname(__FILE__)
 require dirname + '/rbCFPlistError.rb'
 require dirname + '/rbCFTypes.rb'
-require dirname + '/rbXMLCFPropertyList.rb'
 require dirname + '/rbBinaryCFPropertyList.rb'
 
 require 'iconv' unless "".respond_to?("encode")
@@ -95,6 +104,23 @@ rescue NameError => e
     end
   end
 end
+
+begin
+  #require dirname + '/rbLibXMLParser.rb'
+  try_nokogiri = false
+  raise LoadError.new "not found"
+rescue LoadError => e
+  try_nokogiri = true
+end
+
+if try_nokogiri then
+  begin
+    require dirname + '/rbNokogiriParser.rb'
+  rescue LoadError => e
+    require dirname + '/rbREXMLParser.rb'
+  end
+end
+
 
 module CFPropertyList
   # Create CFType hierarchy by guessing the correct CFType, e.g.

@@ -87,6 +87,15 @@ require dirname + '/rbBinaryCFPropertyList.rb'
 
 require 'iconv' unless "".respond_to?("encode")
 
+begin
+  Enumerable::Enumerator.new([])
+rescue NameError => e
+  module Enumerable
+    class Enumerator
+    end
+  end
+end
+
 module CFPropertyList
   # Create CFType hierarchy by guessing the correct CFType, e.g.
   #

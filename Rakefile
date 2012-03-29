@@ -19,8 +19,7 @@ spec = Gem::Specification.new do |s|
   #s.test_files = FileList["{test}/**/*test.rb"].to_a
   s.has_rdoc = true
   s.extra_rdoc_files = ["README"]
-  s.add_dependency("libxml-ruby", ">= 1.1.0")
-  s.add_dependency("rake",">=0.7.0")
+  s.add_development_dependency("rake",">=0.7.0")
 end
 
 desc 'Generate RDoc documentation for the CFPropertyList module.'

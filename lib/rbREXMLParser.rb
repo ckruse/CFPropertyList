@@ -23,7 +23,6 @@ module CFPropertyList
     # serialize CFPropertyList object to XML
     # opts = {}:: Specify options: :formatted - Use indention and line breaks
     def to_str(opts={})
-      require 'libxml'
       doc = REXML::Document.new
       @doc = doc
 

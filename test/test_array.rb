@@ -31,10 +31,10 @@ class TestArray < Test::Unit::TestCase
   def test_big_array
     arr = []
     100.times do |i|
-      elem = {}
+      elem = []
 
       500.times do |j|
-        elem[j.to_s] = i
+        elem.push i.to_s + ': ' + j.to_s
       end
 
       arr.push elem

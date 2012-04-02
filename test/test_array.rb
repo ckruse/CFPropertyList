@@ -1,7 +1,7 @@
 require 'test/unit'
 
 require 'rubygems'
-gem 'libxml-ruby'
+#gem 'libxml-ruby'
 
 require 'cfpropertylist'
 require 'reference'

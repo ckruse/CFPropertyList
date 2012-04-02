@@ -1,7 +1,7 @@
 require 'test/unit'
 
 require 'rubygems'
-gem 'libxml-ruby'
+#gem 'libxml-ruby'
 
 require 'cfpropertylist'
 
@@ -25,7 +25,7 @@ class TestBinary < Test::Unit::TestCase
       CFPropertyList::Binary.pack_it_with_size(7, 0)
     end
   end
-  
+
   def test_bytes_needed
     assert_equal 1, CFPropertyList::Binary.bytes_needed(1)
     assert_equal 2, CFPropertyList::Binary.bytes_needed(2**8)

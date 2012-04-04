@@ -439,17 +439,16 @@ module CFPropertyList
 
       @unique_table[val] ||= begin
         if !Binary.ascii_string?(val)
-          utf8_strlen = Binary.charset_strlen(val, "UTF-8")
           val = Binary.charset_convert(val,"UTF-8","UTF-16BE")
           bdata = Binary.type_bytes(0b0110, Binary.charset_strlen(val,"UTF-16BE"))
 
           val.force_encoding("ASCII-8BIT") if val.respond_to?("encode")
           @object_table[@written_object_count] = bdata << val
         else
-          utf8_strlen = val.bytesize
           bdata = Binary.type_bytes(0b0101,val.bytesize)
           @object_table[@written_object_count] = bdata << val
         end
+
         @written_object_count += 1
         @written_object_count - 1
       end

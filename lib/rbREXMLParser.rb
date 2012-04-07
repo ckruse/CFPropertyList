@@ -10,6 +10,8 @@ module CFPropertyList
     # * :file - The filename of the file to load
     # * :data - The data to parse
     def load(opts)
+
+      doc = nil
       if(opts.has_key?(:file)) then
         File.open(opts[:file], "rb") { |fd| doc = REXML::Document.new(fd) }
       else

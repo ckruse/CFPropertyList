@@ -43,6 +43,10 @@ require 'time'
 # Copyright:: Copyright (c) 2010
 # License::   MIT License
 module CFPropertyList
+  class << self
+    attr_accessor :xml_parser_interface
+  end
+
   # interface class for PList parsers
   class ParserInterface
     # load a plist
@@ -107,16 +111,20 @@ end
 
 begin
   require dirname + '/rbLibXMLParser.rb'
+  temp = LibXML::XML::Parser::Options::NOBLANKS; # check if we have a version with parser options
   try_nokogiri = false
-rescue LoadError => e
+  CFPropertyList.xml_parser_interface = CFPropertyList::LibXMLParser
+rescue LoadError, NameError
   try_nokogiri = true
 end
 
 if try_nokogiri then
   begin
     require dirname + '/rbNokogiriParser.rb'
+    CFPropertyList.xml_parser_interface = CFPropertyList::NokogiriXMLParser
   rescue LoadError => e
     require dirname + '/rbREXMLParser.rb'
+    CFPropertyList.xml_parser_interface = CFPropertyList::ReXMLParser
   end
 end
 
@@ -220,7 +228,7 @@ module CFPropertyList
     # Format constant for automatic format recognizing
     FORMAT_AUTO = 0
 
-    @@parsers = [Binary,XML]
+    @@parsers = [Binary, CFPropertyList.xml_parser_interface]
 
     # Path of PropertyList
     attr_accessor :filename
@@ -291,7 +299,7 @@ module CFPropertyList
           raise CFFormatError.new("Wong file version #{version}") unless version == "00"
           prsr = Binary.new
         else
-          prsr = XML.new
+          prsr = CFPropertyList.xml_parser_interface.new
         end
 
         @value = prsr.load({:data => str})
@@ -323,7 +331,7 @@ module CFPropertyList
           raise CFFormatError.new("Wong file version #{version}") unless version == "00"
           prsr = Binary.new
         else
-          prsr = XML.new
+          prsr = CFPropertyList.xml_parser_interface.new
         end
 
         @value = prsr.load({:file => file})
@@ -365,6 +373,7 @@ module CFPropertyList
     end
   end
 end
+
 
 class Array
   # convert an array to plist format

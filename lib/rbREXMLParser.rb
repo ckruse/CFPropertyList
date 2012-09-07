@@ -4,7 +4,7 @@ require 'rexml/document'
 
 module CFPropertyList
   # XML parser
-  class XML < ParserInterface
+  class ReXMLParser < ParserInterface
     # read a XML file
     # opts::
     # * :file - The filename of the file to load

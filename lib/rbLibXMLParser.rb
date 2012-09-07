@@ -4,7 +4,7 @@ require 'libxml'
 
 module CFPropertyList
   # XML parser
-  class XML < XMLParserInterface
+  class LibXMLParser < XMLParserInterface
     # read a XML file
     # opts::
     # * :file - The filename of the file to load

@@ -4,7 +4,7 @@ require 'nokogiri'
 
 module CFPropertyList
   # XML parser
-  class XML < ParserInterface
+  class NokogiriXMLParser < ParserInterface
     # read a XML file
     # opts::
     # * :file - The filename of the file to load

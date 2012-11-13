@@ -214,7 +214,7 @@ module CFPropertyList
 
     # Convert the given string from one charset to another
     def Binary.charset_convert(str,from,to="UTF-8")
-      return str.clone.force_encoding(from).encode(to) if str.respond_to?("encode")
+      return str.dup.force_encoding(from).encode(to) if str.respond_to?("encode")
       Iconv.conv(to,from,str)
     end
 

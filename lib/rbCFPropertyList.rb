@@ -323,6 +323,7 @@ module CFPropertyList
 
       when List::FORMAT_AUTO then # what we now do is ugly, but neccessary to recognize the file format
         magic_number = IO.read(file,8)
+        raise IOError.new("File #{file} is empty.") unless magic_number
         filetype = magic_number[0..5]
         version = magic_number[6..7]
 

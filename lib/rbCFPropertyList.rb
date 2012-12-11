@@ -73,19 +73,6 @@ module CFPropertyList
 end
 
 class String
-  unless("".respond_to?(:blob) && "".respond_to?(:blob=)) then
-    # The blob status of this string (to set to true if a binary string)
-    attr_accessor :blob
-  end
-
-  unless("".respond_to?(:blob?)) then
-    # Returns whether or not +str+ is a blob.
-    # @return [true,false] If true, this string contains binary data. If false, its a regular string
-    def blob?
-      blob
-    end
-  end
-
   unless("".respond_to?(:bytesize)) then
     def bytesize
       self.length
@@ -148,8 +135,11 @@ module CFPropertyList
     when Float                 then CFReal.new(object)
     when TrueClass, FalseClass then CFBoolean.new(object)
 
+    when Blob
+      CFData.new(object, CFData::DATA_RAW)
+
     when String
-      object.blob? ? CFData.new(object, CFData::DATA_RAW) : CFString.new(object)
+      CFString.new(object)
 
     when Time, DateTime, Date  then CFDate.new(object)
 

@@ -64,4 +64,13 @@ class TestString < Test::Unit::TestCase
     assert_equal raw_xml('string_utf8_long'), plist.to_str(CFPropertyList::List::FORMAT_XML, :formatted => false)
     assert_equal raw_binary('string_utf8_long'), plist.to_str(CFPropertyList::List::FORMAT_BINARY)
   end
+
+  def test_binary_data_blob
+    plist = CFPropertyList::List.new
+    plist.value = CFPropertyList.guess(CFPropertyList::Blob.new('binary_data'))
+    # These tests are failing because there are backslashes in the plists, and
+    # I don't know how to escape them properly to work with your methods.
+    assert_equal raw_binary('string_binary_data'), plist.to_str(CFPropertyList::List::FORMAT_BINARY)
+    assert_equal raw_xml('string_binary_data'), plist.to_str(CFPropertyList::List::FORMAT_XML)
+  end
 end

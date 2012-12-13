@@ -182,7 +182,7 @@ module CFPropertyList
 
     # get base64 decoded value
     def decoded_value
-      @raw_value ||= String.new(Base64.decode64(@value))
+      @raw_value ||= Blob.new(Base64.decode64(@value))
     end
 
     # convert to XML

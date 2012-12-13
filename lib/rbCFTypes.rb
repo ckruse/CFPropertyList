@@ -10,6 +10,13 @@
 require 'base64'
 
 module CFPropertyList
+  ##
+  # Blob is intended to distinguish between a Ruby String instance that should
+  # be converted to a CFString type and a Ruby String instance that should be
+  # converted to a CFData type
+  class Blob < String
+  end
+
   # This class defines the base class for all CFType classes
   #
   class CFType
@@ -163,7 +170,6 @@ module CFPropertyList
     def initialize(value=nil,format=DATA_BASE64)
       if(format == DATA_RAW)
         @raw_value = value
-        @raw_value.blob = true
       else
         @value = value
       end
@@ -177,8 +183,6 @@ module CFPropertyList
     # get base64 decoded value
     def decoded_value
       @raw_value ||= String.new(Base64.decode64(@value))
-      @raw_value.blob = true
-      @raw_value
     end
 
     # convert to XML

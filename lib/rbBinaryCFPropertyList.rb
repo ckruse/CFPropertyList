@@ -38,10 +38,13 @@ module CFPropertyList
       @count_objects = number_of_objects
 
       # decode offset table
-      formats = ["","C*","n*","(H6)*","N*"]
-      @offsets = coded_offset_table.unpack(formats[offset_size])
-      if(offset_size == 3)
-        0.upto(@offsets.size-1) { |i| @offsets[i] = @offsets[i].to_i(16) }
+      if(offset_size != 3)
+        formats = ["","C*","n*","","N*"]
+        @offsets = coded_offset_table.unpack(formats[offset_size])
+      else
+        @offsets = coded_offset_table.unpack("C*").each_slice(3).map {
+          |x,y,z| (x << 16) | (y << 8) | z
+        }
       end
 
       @object_ref_size = object_ref_size

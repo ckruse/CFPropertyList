@@ -288,8 +288,10 @@ module CFPropertyList
         if filetype == "bplist" then
           raise CFFormatError.new("Wrong file version #{version}") unless version == "00"
           prsr = Binary.new
+          @format = List::FORMAT_BINARY
         else
           prsr = CFPropertyList.xml_parser_interface.new
+          @format = List::FORMAT_XML
         end
 
         @value = prsr.load({:data => str})
@@ -321,8 +323,10 @@ module CFPropertyList
         if filetype == "bplist" then
           raise CFFormatError.new("Wong file version #{version}") unless version == "00"
           prsr = Binary.new
+          @format = List::FORMAT_BINARY
         else
           prsr = CFPropertyList.xml_parser_interface.new
+          @format = List::FORMAT_XML
         end
 
         @value = prsr.load({:file => file})

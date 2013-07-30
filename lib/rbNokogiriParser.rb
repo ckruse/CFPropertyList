@@ -112,6 +112,8 @@ module CFPropertyList
 
         unless children.empty? then
           children.each do |n|
+            next if n.text? # avoid a bug of libxml
+            next if n.comment?
             ary.push import_xml(n)
           end
         end

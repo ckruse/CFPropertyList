@@ -108,6 +108,7 @@ module CFPropertyList
 
         if node.has_elements? then
           node.elements.each do |n|
+            next if n.name == '#text' # avoid a bug of libxml
             ary.push import_xml(n)
           end
         end

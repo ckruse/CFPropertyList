@@ -10,7 +10,6 @@ module CFPropertyList
     # * :file - The filename of the file to load
     # * :data - The data to parse
     def load(opts)
-
       doc = nil
       if(opts.has_key?(:file)) then
         File.open(opts[:file], "rb") { |fd| doc = Nokogiri::XML::Document.parse(fd, nil, nil, Nokogiri::XML::ParseOptions::NOBLANKS|Nokogiri::XML::ParseOptions::NOENT) }
@@ -18,8 +17,10 @@ module CFPropertyList
         doc = Nokogiri::XML::Document.parse(opts[:data], nil, nil, Nokogiri::XML::ParseOptions::NOBLANKS|Nokogiri::XML::ParseOptions::NOENT)
       end
 
-      root = doc.root.children.first
-      return import_xml(root)
+      if doc
+        root = doc.root.children.first
+        return import_xml(root)
+      end
     end
 
     # serialize CFPropertyList object to XML

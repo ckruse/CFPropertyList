@@ -10,14 +10,20 @@ module CFPropertyList
     # * :file - The filename of the file to load
     # * :data - The data to parse
     def load(opts)
+      doc = nil
+
       if(opts.has_key?(:file)) then
         doc = LibXML::XML::Document.file(opts[:file],:options => LibXML::XML::Parser::Options::NOBLANKS|LibXML::XML::Parser::Options::NOENT)
       else
         doc = LibXML::XML::Document.string(opts[:data],:options => LibXML::XML::Parser::Options::NOBLANKS|LibXML::XML::Parser::Options::NOENT)
       end
 
-      root = doc.root.first
-      return import_xml(root)
+      if doc
+        root = doc.root.first
+        return import_xml(root)
+      end
+    rescue LibXML::XML::Error => e
+      raise CFFormatError.new('invalid XML: ' + e.message)
     end
 
     # serialize CFPropertyList object to XML

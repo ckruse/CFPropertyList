@@ -334,6 +334,8 @@ module CFPropertyList
 
         @value = prsr.load({:file => file})
       end
+
+      raise CFFormatError.new("Invalid format or parser error!") if @value.nil?
     end
 
     # Serialize CFPropertyList object to specified format and write it to file

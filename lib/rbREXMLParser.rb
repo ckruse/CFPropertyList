@@ -18,8 +18,10 @@ module CFPropertyList
         doc = REXML::Document.new(opts[:data])
       end
 
-      root = doc.root.elements[1]
-      return import_xml(root)
+      if doc
+        root = doc.root.elements[1]
+        return import_xml(root)
+      end
     end
 
     # serialize CFPropertyList object to XML

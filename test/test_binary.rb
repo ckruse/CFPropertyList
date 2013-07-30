@@ -1,3 +1,5 @@
+# -*- coding: ascii-8bit -*-
+
 require 'test/unit'
 
 require 'rubygems'

@@ -222,10 +222,12 @@ module CFPropertyList
 
     # Path of PropertyList
     attr_accessor :filename
-    # Path of PropertyList
+    # the original format of the PropertyList
     attr_accessor :format
     # the root value in the plist file
     attr_accessor :value
+    # default value for XML generation; if true generate formatted XML
+    attr_accessor :formatted
 
     # initialize a new CFPropertyList, arguments are:
     #
@@ -238,6 +240,7 @@ module CFPropertyList
       @filename = opts[:file]
       @format = opts[:format] || FORMAT_AUTO
       @data = opts[:data]
+      @formatted = opts[:formatted]
 
       load(@filename) unless @filename.nil?
       load_str(@data) unless @data.nil?
@@ -349,7 +352,10 @@ module CFPropertyList
       end
 
       opts[:root] = @value
+      opts[:formatted] = @formatted unless opts.has_key?(:formatted)
+
       prsr = @@parsers[format-1].new
+
       content = prsr.to_str(opts)
 
       File.open(file, 'wb') {

@@ -246,6 +246,16 @@ module CFPropertyList
       load_str(@data) unless @data.nil?
     end
 
+    # returns a list of registered parsers
+    def self.parsers
+      @@parsers
+    end
+
+    # set a list of parsers
+    def self.parsers=(val)
+      @@parsers = val
+    end
+
     # Load an XML PropertyList
     # filename = nil:: The filename to read from; if nil, read from the file defined by instance variable +filename+
     def load_xml(filename=nil)

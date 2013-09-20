@@ -385,8 +385,13 @@ module CFPropertyList
     # format = List::FORMAT_BINARY:: The format to save the plist
     # opts={}:: Pass parser options
     def to_str(format=List::FORMAT_BINARY,opts={})
+      raise CFFormatError.new("Format #{format} not supported, use List::FORMAT_BINARY or List::FORMAT_XML") if format != FORMAT_BINARY && format != FORMAT_XML
+
       prsr = @@parsers[format-1].new
+
       opts[:root] = @value
+      opts[:formatted] = @formatted unless opts.has_key?(:formatted)
+
       return prsr.to_str(opts)
     end
   end
@@ -400,7 +405,7 @@ class Array
 
     plist = CFPropertyList::List.new
     plist.value = CFPropertyList.guess(self, options)
-    plist.to_str(options[:plist_format])
+    plist.to_str(options[:plist_format], options)
   end
 end
 
@@ -411,7 +416,7 @@ class Enumerator
 
     plist = CFPropertyList::List.new
     plist.value = CFPropertyList.guess(self, options)
-    plist.to_str(options[:plist_format])
+    plist.to_str(options[:plist_format], options)
   end
 end
 
@@ -422,7 +427,7 @@ class Hash
 
     plist = CFPropertyList::List.new
     plist.value = CFPropertyList.guess(self, options)
-    plist.to_str(options[:plist_format])
+    plist.to_str(options[:plist_format], options)
   end
 end
 

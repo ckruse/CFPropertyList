@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+require 'stringio'
+
 module CFPropertyList
   # Binary PList parser class
   class Binary

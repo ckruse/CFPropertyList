@@ -21,6 +21,8 @@ module CFPropertyList
         root = doc.root.children.first
         return import_xml(root)
       end
+    rescue Nokogiri::XML::SyntaxError => e
+      raise CFFormatError.new('invalid XML: ' + e.message)
     end
 
     # serialize CFPropertyList object to XML

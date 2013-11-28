@@ -73,4 +73,62 @@ class TestString < Test::Unit::TestCase
     assert_equal raw_binary('string_binary_data'), plist.to_str(CFPropertyList::List::FORMAT_BINARY)
     assert_equal raw_xml('string_binary_data'), plist.to_str(CFPropertyList::List::FORMAT_XML)
   end
+
+  def test_empty_xml_string_with_libxml
+    orig_parsers = CFPropertyList::List.parsers
+    CFPropertyList::List.parsers = [CFPropertyList::Binary, CFPropertyList::LibXMLParser]
+    example_data = <<-XML
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <string></string>
+</plist>
+XML
+
+    lst = CFPropertyList::List.new
+    lst.load_str(example_data)
+
+    assert_equal "", lst.value.value
+
+    CFPropertyList::List.parsers = orig_parsers
+  end
+
+  def test_empty_xml_string_with_rexml
+    orig_parsers = CFPropertyList::List.parsers
+    CFPropertyList::List.parsers = [CFPropertyList::Binary, CFPropertyList::ReXMLParser]
+    example_data = <<-XML
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <string></string>
+</plist>
+XML
+
+    lst = CFPropertyList::List.new
+    lst.load_str(example_data)
+
+    assert_equal "", lst.value.value
+
+    CFPropertyList::List.parsers = orig_parsers
+  end
+
+  def test_empty_xml_string_with_nokogiri
+    orig_parsers = CFPropertyList::List.parsers
+    CFPropertyList::List.parsers = [CFPropertyList::Binary, CFPropertyList::NokogiriXMLParser]
+    example_data = <<-XML
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <string></string>
+</plist>
+XML
+
+    lst = CFPropertyList::List.new
+    lst.load_str(example_data)
+
+    assert_equal "", lst.value.value
+
+    CFPropertyList::List.parsers = orig_parsers
+  end
+
 end

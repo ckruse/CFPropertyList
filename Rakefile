@@ -6,10 +6,11 @@ require 'rake/testtask'
 
 spec = Gem::Specification.new do |s|
   s.name = "CFPropertyList"
-  s.version = "2.2.0"
+  s.version = "2.2.4"
   s.author = "Christian Kruse"
   s.email = "cjk@wwwtech.de"
   s.homepage = "http://github.com/ckruse/CFPropertyList"
+  s.license = 'MIT'
   s.platform = Gem::Platform::RUBY
   s.summary = "Read, write and manipulate both binary and XML property lists as defined by apple"
   s.description = "This is a module to read, write and manipulate both binary and XML property lists as defined by apple."

@@ -22,6 +22,8 @@ module CFPropertyList
         root = doc.root.elements[1]
         return import_xml(root)
       end
+    rescue REXML::ParseException => e
+      raise CFFormatError.new('invalid XML: ' + e.message)
     end
 
     # serialize CFPropertyList object to XML

@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+require 'stringio'
+
 module CFPropertyList
   # Binary PList parser class
   class Binary
@@ -256,6 +258,16 @@ module CFPropertyList
     end
     protected :read_binary_unicode_string
 
+    def unpack_with_size(nbytes, buff)
+      format = ["C*", "n*", "N*", "N*"][nbytes - 1];
+
+      if nbytes == 3
+        buff = "\0" + buff.scan(/.{1,3}/).join("\0")
+      end
+
+      return buff.unpack(format)
+    end
+
     # Read an binary array value, including contained objects
     def read_binary_array(fname,fd,length)
       ary = []
@@ -263,7 +275,7 @@ module CFPropertyList
       # first: read object refs
       if(length != 0)
         buff = fd.read(length * @object_ref_size)
-        objects = buff.unpack(@object_ref_size == 1 ? "C*" : "n*")
+        objects = unpack_with_size(@object_ref_size, buff) #buff.unpack(@object_ref_size == 1 ? "C*" : "n*")
 
         # now: read objects
         0.upto(length-1) do |i|
@@ -283,11 +295,11 @@ module CFPropertyList
       # first: read keys
       if(length != 0) then
         buff = fd.read(length * @object_ref_size)
-        keys = buff.unpack(@object_ref_size == 1 ? "C*" : "n*")
+        keys = unpack_with_size(@object_ref_size, buff) #buff.unpack(@object_ref_size == 1 ? "C*" : "n*")
 
         # second: read object refs
         buff = fd.read(length * @object_ref_size)
-        objects = buff.unpack(@object_ref_size == 1 ? "C*" : "n*")
+        objects = unpack_with_size(@object_ref_size, buff) #buff.unpack(@object_ref_size == 1 ? "C*" : "n*")
 
         # read real keys and objects
         0.upto(length-1) do |i|

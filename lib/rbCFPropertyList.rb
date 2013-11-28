@@ -159,7 +159,12 @@ module CFPropertyList
       when Object.const_defined?('BigDecimal') && object.is_a?(BigDecimal)
         CFReal.new(object)
       when object.respond_to?(:read)
-        CFData.new(object.read(), CFData::DATA_RAW)
+        raw_data = object.read
+        # treat the data as a bytestring (ASCII-8BIT) if Ruby supports it.  Do this by forcing
+        # the encoding, on the assumption that the bytes were read correctly, and just tagged with
+        # an inappropriate encoding, rather than transcoding.
+        raw_data.force_encoding(Encoding::ASCII_8BIT) if raw_data.respond_to?(:force_encoding)
+        CFData.new(raw_data, CFData::DATA_RAW)
       when options[:converter_method] && object.respond_to?(options[:converter_method])
         if options[:converter_with_opts]
           CFPropertyList.guess(object.send(options[:converter_method],options),options)
@@ -241,6 +246,16 @@ module CFPropertyList
 
       load(@filename) unless @filename.nil?
       load_str(@data) unless @data.nil?
+    end
+
+    # returns a list of registered parsers
+    def self.parsers
+      @@parsers
+    end
+
+    # set a list of parsers
+    def self.parsers=(val)
+      @@parsers = val
     end
 
     # Load an XML PropertyList
@@ -367,8 +382,13 @@ module CFPropertyList
     # format = List::FORMAT_BINARY:: The format to save the plist
     # opts={}:: Pass parser options
     def to_str(format=List::FORMAT_BINARY,opts={})
+      raise CFFormatError.new("Format #{format} not supported, use List::FORMAT_BINARY or List::FORMAT_XML") if format != FORMAT_BINARY && format != FORMAT_XML
+
       prsr = @@parsers[format-1].new
+
       opts[:root] = @value
+      opts[:formatted] = @formatted unless opts.has_key?(:formatted)
+
       return prsr.to_str(opts)
     end
   end
@@ -382,7 +402,7 @@ class Array
 
     plist = CFPropertyList::List.new
     plist.value = CFPropertyList.guess(self, options)
-    plist.to_str(options[:plist_format])
+    plist.to_str(options[:plist_format], options)
   end
 end
 
@@ -393,7 +413,7 @@ class Enumerator
 
     plist = CFPropertyList::List.new
     plist.value = CFPropertyList.guess(self, options)
-    plist.to_str(options[:plist_format])
+    plist.to_str(options[:plist_format], options)
   end
 end
 
@@ -404,7 +424,7 @@ class Hash
 
     plist = CFPropertyList::List.new
     plist.value = CFPropertyList.guess(self, options)
-    plist.to_str(options[:plist_format])
+    plist.to_str(options[:plist_format], options)
   end
 end
 

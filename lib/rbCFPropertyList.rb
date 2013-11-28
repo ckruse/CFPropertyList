@@ -87,12 +87,9 @@ require dirname + '/rbBinaryCFPropertyList.rb'
 
 require 'iconv' unless "".respond_to?("encode")
 
-begin
-  Enumerable::Enumerator.new([])
-rescue NameError => e
-  module Enumerable
-    class Enumerator
-    end
+# ensure that the module and class exist
+module Enumerable
+  class Enumerator
   end
 end
 

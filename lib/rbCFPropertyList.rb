@@ -186,7 +186,7 @@ module CFPropertyList
     if(object.is_a?(CFDate) || object.is_a?(CFString) || object.is_a?(CFInteger) || object.is_a?(CFReal) || object.is_a?(CFBoolean)) then
       return object.value
     elsif(object.is_a?(CFData)) then
-      return object.decoded_value
+      return CFPropertyList::Blob.new(object.decoded_value)
     elsif(object.is_a?(CFArray)) then
       ary = []
       object.value.each do

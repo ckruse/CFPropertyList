@@ -71,11 +71,12 @@ class TestString < Test::Unit::TestCase
     # These tests are failing because there are backslashes in the plists, and
     # I don't know how to escape them properly to work with your methods.
     assert_equal raw_binary('string_binary_data'), plist.to_str(CFPropertyList::List::FORMAT_BINARY)
-    assert_equal raw_xml('string_binary_data'), plist.to_str(CFPropertyList::List::FORMAT_XML)
+    assert_equal raw_xml('string_binary_data').gsub(/\s/, ''), plist.to_str(CFPropertyList::List::FORMAT_XML).gsub(/\s/, '')
   end
 
   def test_empty_xml_string_with_libxml
     orig_parsers = CFPropertyList::List.parsers
+    require File.dirname(__FILE__) + '/../lib/rbLibXMLParser.rb'
     CFPropertyList::List.parsers = [CFPropertyList::Binary, CFPropertyList::LibXMLParser]
     example_data = <<-XML
 <?xml version="1.0" encoding="UTF-8"?>
@@ -90,11 +91,13 @@ XML
 
     assert_equal "", lst.value.value
 
+  ensure
     CFPropertyList::List.parsers = orig_parsers
   end
 
   def test_empty_xml_string_with_rexml
     orig_parsers = CFPropertyList::List.parsers
+    require File.dirname(__FILE__) + '/../lib/rbREXMLParser.rb'
     CFPropertyList::List.parsers = [CFPropertyList::Binary, CFPropertyList::ReXMLParser]
     example_data = <<-XML
 <?xml version="1.0" encoding="UTF-8"?>
@@ -109,11 +112,13 @@ XML
 
     assert_equal "", lst.value.value
 
+  ensure
     CFPropertyList::List.parsers = orig_parsers
   end
 
   def test_empty_xml_string_with_nokogiri
     orig_parsers = CFPropertyList::List.parsers
+    require File.dirname(__FILE__) + '/../lib/rbNokogiriParser.rb'
     CFPropertyList::List.parsers = [CFPropertyList::Binary, CFPropertyList::NokogiriXMLParser]
     example_data = <<-XML
 <?xml version="1.0" encoding="UTF-8"?>
@@ -127,7 +132,7 @@ XML
     lst.load_str(example_data)
 
     assert_equal "", lst.value.value
-
+  ensure
     CFPropertyList::List.parsers = orig_parsers
   end
 

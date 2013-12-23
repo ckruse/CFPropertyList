@@ -5,6 +5,7 @@ require 'cfpropertylist'
 class TestFormatted < Test::Unit::TestCase
   def test_formatted_with_libxml
     orig_parsers = CFPropertyList::List.parsers
+    require File.dirname(__FILE__) + '/../lib/rbLibXMLParser.rb'
     CFPropertyList::List.parsers = [CFPropertyList::Binary, CFPropertyList::LibXMLParser]
 
     plist = CFPropertyList::List.new
@@ -17,8 +18,8 @@ class TestFormatted < Test::Unit::TestCase
   end
 
   def test_formatted_with_nokogiri
-    require File.dirname(__FILE__) + '/../lib/rbNokogiriParser.rb'
     orig_parsers = CFPropertyList::List.parsers
+    require File.dirname(__FILE__) + '/../lib/rbNokogiriParser.rb'
     CFPropertyList::List.parsers = [CFPropertyList::Binary, CFPropertyList::NokogiriXMLParser]
 
     plist = CFPropertyList::List.new
@@ -32,8 +33,8 @@ class TestFormatted < Test::Unit::TestCase
   end
 
   def test_formatted_with_rexml
-    require File.dirname(__FILE__) + '/../lib/rbREXMLParser.rb'
     orig_parsers = CFPropertyList::List.parsers
+    require File.dirname(__FILE__) + '/../lib/rbREXMLParser.rb'
     CFPropertyList::List.parsers = [CFPropertyList::Binary, CFPropertyList::ReXMLParser]
 
     plist = CFPropertyList::List.new
@@ -50,6 +51,7 @@ class TestFormatted < Test::Unit::TestCase
 
   def test_formatted_with_libxml_and_datastructures
     orig_parsers = CFPropertyList::List.parsers
+    require File.dirname(__FILE__) + '/../lib/rbLibXMLParser.rb'
     CFPropertyList::List.parsers = [CFPropertyList::Binary, CFPropertyList::LibXMLParser]
 
     foo = { :foo => "foo", :bar => "bar", :baz => "baz" }
@@ -60,8 +62,8 @@ class TestFormatted < Test::Unit::TestCase
   end
 
   def test_formatted_with_nokogiri_and_datastructures
-    require File.dirname(__FILE__) + '/../lib/rbNokogiriParser.rb'
     orig_parsers = CFPropertyList::List.parsers
+    require File.dirname(__FILE__) + '/../lib/rbNokogiriParser.rb'
     CFPropertyList::List.parsers = [CFPropertyList::Binary, CFPropertyList::NokogiriXMLParser]
 
     foo = { :foo => "foo", :bar => "bar", :baz => "baz" }
@@ -72,8 +74,8 @@ class TestFormatted < Test::Unit::TestCase
   end
 
   def test_formatted_with_rexml_and_datastructures
-    require File.dirname(__FILE__) + '/../lib/rbREXMLParser.rb'
     orig_parsers = CFPropertyList::List.parsers
+    require File.dirname(__FILE__) + '/../lib/rbREXMLParser.rb'
     CFPropertyList::List.parsers = [CFPropertyList::Binary, CFPropertyList::ReXMLParser]
 
     foo = { :foo => "foo", :bar => "bar", :baz => "baz" }

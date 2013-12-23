@@ -13,12 +13,17 @@ class TestInvalidXML < Test::Unit::TestCase
     xml = "<dict>"
     plist = CFPropertyList::List.new
 
+    has_raised = false
+
     begin
       plist.load_xml_str(xml)
     rescue CFFormatError
+      has_raised = true
     ensure
       CFPropertyList::List.parsers = orig_parsers
     end
+
+    assert has_raised
   end
 
   def test_invalid_xml_with_nokogiri
@@ -29,12 +34,17 @@ class TestInvalidXML < Test::Unit::TestCase
     xml = "<dict>"
     plist = CFPropertyList::List.new
 
+    has_raised = false
+
     begin
       plist.load_xml_str(xml)
     rescue CFFormatError
+      has_raised = true
     ensure
       CFPropertyList::List.parsers = orig_parsers
     end
+
+    assert has_raised
   end
 
   def test_invalid_xml_with_rexml
@@ -45,12 +55,17 @@ class TestInvalidXML < Test::Unit::TestCase
     xml = "<dict>"
     plist = CFPropertyList::List.new
 
+    has_raised = false
+
     begin
       plist.load_xml_str(xml)
     rescue CFFormatError
+      has_raised = true
     ensure
       CFPropertyList::List.parsers = orig_parsers
     end
+
+    assert has_raised
   end
 
 

@@ -129,6 +129,7 @@ module CFPropertyList
         ret = CFInteger.new(get_value(node).to_i)
       when 'string'
         ret = CFString.new(get_value(node))
+        ret.value = '' if ret.value.nil? # REXML returns nil for empty elements' .text attribute
       when 'data'
         ret = CFData.new(get_value(node))
       when 'date'

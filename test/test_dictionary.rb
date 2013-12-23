@@ -52,4 +52,27 @@ class TestDictionary < Test::Unit::TestCase
     reparsed = CFPropertyList::List.new(:data => serialized)
     assert_equal hash, CFPropertyList.native_types(reparsed.value)
   end
+
+
+  def test_empty_key_with_rexml
+    orig_parsers = CFPropertyList::List.parsers
+    CFPropertyList::List.parsers = [CFPropertyList::Binary, CFPropertyList::ReXMLParser]
+    example_data = <<-XML
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key></key>
+    <string>test</string>
+  </dict>
+</plist>
+XML
+
+    lst = CFPropertyList::List.new
+    lst.load_str(example_data)
+
+    assert_equal "", lst.value.value.keys.first
+
+    CFPropertyList::List.parsers = orig_parsers
+  end
 end

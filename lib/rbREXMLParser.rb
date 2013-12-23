@@ -91,12 +91,12 @@ module CFPropertyList
 
         if node.has_elements? then
           node.elements.each do |n|
-            #print n.name + "\n"
             next if n.name == '#text' # avoid a bug of libxml
             next if n.name == '#comment'
 
             if n.name == "key" then
               key = get_value(n)
+              key = '' if key.nil? # REXML returns nil if key is empty
             else
               raise CFFormatError.new("Format error!") if key.nil?
               hsh[key] = import_xml(n)

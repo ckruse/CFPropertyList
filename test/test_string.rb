@@ -136,4 +136,9 @@ XML
     CFPropertyList::List.parsers = orig_parsers
   end
 
+  def test_data_string_is_blob
+    assert_equal parsed_binary('string_binary_data').class, CFPropertyList::Blob
+    assert_equal parsed_xml('string_binary_data').class, CFPropertyList::Blob
+  end
+
 end

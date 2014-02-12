@@ -6,7 +6,7 @@ require 'cfpropertylist'
 
 class TestInvalidXML < Test::Unit::TestCase
   def test_invalid_xml_with_libxml
-    require File.dirname(__FILE__) + '/../lib/rbLibXMLParser.rb'
+    require 'cfpropertylist/rbLibXMLParser'
     orig_parsers = CFPropertyList::List.parsers
     CFPropertyList::List.parsers = [CFPropertyList::Binary, CFPropertyList::LibXMLParser]
 
@@ -27,7 +27,7 @@ class TestInvalidXML < Test::Unit::TestCase
   end
 
   def test_invalid_xml_with_nokogiri
-    require File.dirname(__FILE__) + '/../lib/rbNokogiriParser.rb'
+    require 'cfpropertylist/rbNokogiriParser'
     orig_parsers = CFPropertyList::List.parsers
     CFPropertyList::List.parsers = [CFPropertyList::Binary, CFPropertyList::NokogiriXMLParser]
 
@@ -48,7 +48,7 @@ class TestInvalidXML < Test::Unit::TestCase
   end
 
   def test_invalid_xml_with_rexml
-    require File.dirname(__FILE__) + '/../lib/rbREXMLParser.rb'
+    require 'cfpropertylist/rbREXMLParser'
     orig_parsers = CFPropertyList::List.parsers
     CFPropertyList::List.parsers = [CFPropertyList::Binary, CFPropertyList::ReXMLParser]
 

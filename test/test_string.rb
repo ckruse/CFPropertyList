@@ -76,7 +76,7 @@ class TestString < Test::Unit::TestCase
 
   def test_empty_xml_string_with_libxml
     orig_parsers = CFPropertyList::List.parsers
-    require File.dirname(__FILE__) + '/../lib/rbLibXMLParser.rb'
+    require 'cfpropertylist/rbLibXMLParser'
     CFPropertyList::List.parsers = [CFPropertyList::Binary, CFPropertyList::LibXMLParser]
     example_data = <<-XML
 <?xml version="1.0" encoding="UTF-8"?>
@@ -97,7 +97,7 @@ XML
 
   def test_empty_xml_string_with_rexml
     orig_parsers = CFPropertyList::List.parsers
-    require File.dirname(__FILE__) + '/../lib/rbREXMLParser.rb'
+    require 'cfpropertylist/rbREXMLParser'
     CFPropertyList::List.parsers = [CFPropertyList::Binary, CFPropertyList::ReXMLParser]
     example_data = <<-XML
 <?xml version="1.0" encoding="UTF-8"?>
@@ -118,7 +118,7 @@ XML
 
   def test_empty_xml_string_with_nokogiri
     orig_parsers = CFPropertyList::List.parsers
-    require File.dirname(__FILE__) + '/../lib/rbNokogiriParser.rb'
+    require 'cfpropertylist/rbNokogiriParser'
     CFPropertyList::List.parsers = [CFPropertyList::Binary, CFPropertyList::NokogiriXMLParser]
     example_data = <<-XML
 <?xml version="1.0" encoding="UTF-8"?>

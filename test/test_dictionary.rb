@@ -56,7 +56,7 @@ class TestDictionary < Test::Unit::TestCase
 
   def test_empty_key_with_rexml
     orig_parsers = CFPropertyList::List.parsers
-    require File.dirname(__FILE__) + '/../lib/rbREXMLParser.rb'
+    require 'cfpropertylist/rbREXMLParser'
     CFPropertyList::List.parsers = [CFPropertyList::Binary, CFPropertyList::ReXMLParser]
     example_data = <<-XML
 <?xml version="1.0" encoding="UTF-8"?>

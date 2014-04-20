@@ -344,6 +344,8 @@ module CFPropertyList
         read_binary_string(fname,fd,object_length)
       when '6' # unicode string (utf16be)
         read_binary_unicode_string(fname,fd,object_length)
+      when '8'
+        CFDictionary.new({'CF$UID' => read_binary_int(fname, fd, object_length)})
       when 'a' # array
         read_binary_array(fname,fd,object_length)
       when 'd' # dictionary

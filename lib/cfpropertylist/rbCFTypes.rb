@@ -17,6 +17,13 @@ module CFPropertyList
   class Blob < String
   end
 
+  ##
+  # UidFixnum is intended to distinguish between a Ruby Fixnum
+  # instance that should be converted to a CFInteger/CFReal type and a
+  # Ruby Fixnum instance that should be converted to a CFUid type.
+  class UidFixnum < Fixnum
+  end
+
   # This class defines the base class for all CFType classes
   #
   class CFType
@@ -241,6 +248,17 @@ module CFPropertyList
     # convert to binary
     def to_binary(bplist)
       bplist.dict_to_binary(self)
+    end
+  end
+
+  class CFUid < CFType
+    def to_xml(parser)
+      CFDictionary.new({'CF$UID' => CFInteger.new(@value)}).to_xml(parser)
+    end
+
+    # convert to binary
+    def to_binary(bplist)
+      bplist.uid_to_binary(@value)
     end
   end
 end

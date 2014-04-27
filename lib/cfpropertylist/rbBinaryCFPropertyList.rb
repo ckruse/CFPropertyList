@@ -346,7 +346,7 @@ module CFPropertyList
       when '6' # unicode string (utf16be)
         read_binary_unicode_string(fname,fd,object_length)
       when '8'
-        CFDictionary.new({'CF$UID' => read_binary_int(fname, fd, object_length)})
+        CFUid.new(read_binary_int(fname, fd, object_length).value)
       when 'a' # array
         read_binary_array(fname,fd,object_length)
       when 'd' # dictionary
@@ -508,6 +508,32 @@ module CFPropertyList
           int_to_binary(value.value)
         else
           real_to_binary(value.value)
+        end
+
+      @written_object_count += 1
+      @written_object_count - 1
+    end
+
+    def uid_to_binary(value)
+      nbytes = 0
+      nbytes = 1  if value > 0xFF # 1 byte integer
+      nbytes += 1 if value > 0xFFFF # 4 byte integer
+      nbytes += 1 if value > 0xFFFFFFFF # 8 byte integer
+      nbytes = 3  if value < 0 # 8 byte integer, since signed
+
+      @object_table[@written_object_count] = Binary.type_bytes(0b1000, nbytes) <<
+        if nbytes < 3
+          [value].pack(
+            if nbytes == 0    then "C"
+            elsif nbytes == 1 then "n"
+            else "N"
+            end
+          )
+        else
+          # 64 bit signed integer; we need the higher and the lower 32 bit of the value
+          high_word = value >> 32
+          low_word = value & 0xFFFFFFFF
+          [high_word,low_word].pack("NN")
         end
 
       @written_object_count += 1

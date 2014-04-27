@@ -129,6 +129,7 @@ module CFPropertyList
   def guess(object, options = {})
     case object
     when Fixnum, Integer       then CFInteger.new(object)
+    when UidFixnum             then CFUid.new(object)
     when Float                 then CFReal.new(object)
     when TrueClass, FalseClass then CFBoolean.new(object)
 
@@ -183,7 +184,7 @@ module CFPropertyList
   def native_types(object,keys_as_symbols=false)
     return if object.nil?
 
-    if(object.is_a?(CFDate) || object.is_a?(CFString) || object.is_a?(CFInteger) || object.is_a?(CFReal) || object.is_a?(CFBoolean)) then
+    if(object.is_a?(CFDate) || object.is_a?(CFString) || object.is_a?(CFInteger) || object.is_a?(CFReal) || object.is_a?(CFBoolean)) || object.is_a?(CFUid) then
       return object.value
     elsif(object.is_a?(CFData)) then
       return CFPropertyList::Blob.new(object.decoded_value)

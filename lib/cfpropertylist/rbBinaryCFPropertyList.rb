@@ -295,11 +295,11 @@ module CFPropertyList
       # first: read keys
       if(length != 0) then
         buff = fd.read(length * @object_ref_size)
-        keys = unpack_with_size(@object_ref_size, buff) #buff.unpack(@object_ref_size == 1 ? "C*" : "n*")
+        keys = unpack_with_size(@object_ref_size, buff)
 
         # second: read object refs
         buff = fd.read(length * @object_ref_size)
-        objects = unpack_with_size(@object_ref_size, buff) #buff.unpack(@object_ref_size == 1 ? "C*" : "n*")
+        objects = unpack_with_size(@object_ref_size, buff)
 
         # read real keys and objects
         0.upto(length-1) do |i|
@@ -313,13 +313,14 @@ module CFPropertyList
     end
     protected :read_binary_dict
 
-    # Read an object type byte, decode it and delegate to the correct reader function
+    # Read an object type byte, decode it and delegate to the correct
+    # reader function
     def read_binary_object(fname,fd)
       # first: read the marker byte
       buff = fd.read(1)
 
       object_length = buff.unpack("C*")
-      object_length = object_length[0]  & 0xF
+      object_length = object_length[0] & 0xF
 
       buff = buff.unpack("H*")
       object_type = buff[0][0].chr

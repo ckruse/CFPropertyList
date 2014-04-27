@@ -53,7 +53,6 @@ module CFPropertyList
     end
 
     def new_node(name)
-      #LibXML::XML::Node.new(name)
       REXML::Element.new(name)
     end
 

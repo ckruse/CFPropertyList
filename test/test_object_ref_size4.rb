@@ -1,12 +1,11 @@
-require 'test/unit'
+require 'minitest/autorun'
 
 require 'rubygems'
-#gem 'libxml-ruby'
 
 require 'cfpropertylist'
 require 'reference'
 
-class TestObjectRefSize4 < Test::Unit::TestCase
+class TestObjectRefSize4 < Minitest::Test
   include Reference
 
   def test_very_big_dict

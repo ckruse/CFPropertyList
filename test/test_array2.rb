@@ -1,12 +1,11 @@
-require 'test/unit'
+require 'minitest/autorun'
 
 require 'rubygems'
-#gem 'libxml-ruby'
 
 require 'cfpropertylist'
 require 'reference'
 
-class TestArray < Test::Unit::TestCase
+class TestArray < Minitest::Test
   include Reference
 
   def test_read_array

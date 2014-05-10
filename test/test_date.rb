@@ -1,12 +1,11 @@
-require 'test/unit'
+require 'minitest/autorun'
 
 require 'rubygems'
-#gem 'libxml-ruby'
 
 require 'cfpropertylist'
 require 'reference'
 
-class TestDate < Test::Unit::TestCase
+class TestDate < Minitest::Test
   include Reference
 
   def test_read_date_epoch

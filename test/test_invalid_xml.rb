@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-require 'test/unit'
+require 'minitest/autorun'
 require 'rubygems'
 require 'cfpropertylist'
 
-class TestInvalidXML < Test::Unit::TestCase
+class TestInvalidXML < Minitest::Test
   def test_invalid_xml_with_libxml
     require 'cfpropertylist/rbLibXMLParser'
     orig_parsers = CFPropertyList::List.parsers

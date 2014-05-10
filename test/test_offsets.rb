@@ -1,12 +1,11 @@
-require 'test/unit'
+require 'minitest/autorun'
 
 require 'rubygems'
-#gem 'libxml-ruby'
 
 require 'cfpropertylist'
 require 'reference'
 
-class TestOffsets < Test::Unit::TestCase
+class TestOffsets < Minitest::Test
   include Reference
 
   def test_read_offsets_1_byte

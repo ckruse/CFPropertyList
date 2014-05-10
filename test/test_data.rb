@@ -1,14 +1,13 @@
-require 'test/unit'
+require 'minitest/autorun'
 
 require 'rubygems'
-#gem 'libxml-ruby'
 
 require 'cfpropertylist'
 require 'reference'
 
 require 'stringio'
 
-class TestData < Test::Unit::TestCase
+class TestData < Minitest::Test
   include Reference
 
   def test_read_data_short

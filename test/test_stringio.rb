@@ -1,11 +1,11 @@
-require 'test/unit'
+require 'minitest/autorun'
 
 require 'rubygems'
 
 require 'cfpropertylist'
 require 'reference'
 
-class TestStringio < Test::Unit::TestCase
+class TestStringio < Minitest::Test
   include Reference
 
   def test_read_stringio

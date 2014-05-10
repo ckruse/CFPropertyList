@@ -1,4 +1,4 @@
-require 'test/unit'
+require 'minitest/autorun'
 
 require 'rubygems'
 #gem 'libxml-ruby'
@@ -6,7 +6,7 @@ require 'rubygems'
 require 'cfpropertylist'
 require 'reference'
 
-class TestDictionary < Test::Unit::TestCase
+class TestDictionary < Minitest::Test
   include Reference
 
   def test_read_dictionary

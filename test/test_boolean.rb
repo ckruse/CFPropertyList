@@ -1,12 +1,11 @@
-require 'test/unit'
+require 'minitest/autorun'
 
 require 'rubygems'
-#gem 'libxml-ruby'
 
 require 'cfpropertylist'
 require 'reference'
 
-class TestBoolean < Test::Unit::TestCase
+class TestBoolean < Minitest::Test
   include Reference
 
   def test_read_true

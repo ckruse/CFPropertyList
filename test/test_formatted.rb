@@ -1,8 +1,8 @@
-require 'test/unit'
+require 'minitest/autorun'
 require 'rubygems'
 require 'cfpropertylist'
 
-class TestFormatted < Test::Unit::TestCase
+class TestFormatted < Minitest::Test
   def test_formatted_with_libxml
     orig_parsers = CFPropertyList::List.parsers
     require 'cfpropertylist/rbLibXMLParser'

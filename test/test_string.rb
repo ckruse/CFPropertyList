@@ -1,12 +1,11 @@
-require 'test/unit'
+require 'minitest/autorun'
 
 require 'rubygems'
-#gem 'libxml-ruby'
 
 require 'cfpropertylist'
 require 'reference'
 
-class TestString < Test::Unit::TestCase
+class TestString < Minitest::Test
   include Reference
 
   def test_read_string_ascii_short

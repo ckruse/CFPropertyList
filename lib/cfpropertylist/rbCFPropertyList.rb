@@ -352,7 +352,7 @@ module CFPropertyList
         @value = prsr.load({:file => file})
 
       when List::FORMAT_AUTO then # what we now do is ugly, but neccessary to recognize the file format
-        magic_number = IO.read(file,8)
+        magic_number = IO.read(file,12)
         raise IOError.new("File #{file} is empty.") unless magic_number
         filetype = magic_number[0..5]
         version = magic_number[6..7]
@@ -363,7 +363,7 @@ module CFPropertyList
           prsr = Binary.new
           @format = List::FORMAT_BINARY
         else
-          if str =~ /^<(\?xml|!DOCTYPE|plist)/
+          if magic_number =~ /^<(\?xml|!DOCTYPE|plist)/
             prsr = CFPropertyList.xml_parser_interface.new
             @format = List::FORMAT_XML
           else

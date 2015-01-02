@@ -92,7 +92,7 @@ module CFPropertyList
   # geht the timestamp or the Apple timestamp
   class CFDate < CFType
     TIMESTAMP_APPLE = 0
-    TIMESTAMP_UNIX  = 1;
+    TIMESTAMP_UNIX  = 1
     DATE_DIFF_APPLE_UNIX = 978307200
 
     # create a XML date strimg from a time object

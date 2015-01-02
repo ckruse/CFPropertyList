@@ -84,6 +84,7 @@ dirname = File.dirname(__FILE__)
 require dirname + '/rbCFPlistError.rb'
 require dirname + '/rbCFTypes.rb'
 require dirname + '/rbBinaryCFPropertyList.rb'
+require dirname + '/rbPlainCFPropertyList.rb'
 
 require 'iconv' unless "".respond_to?("encode")
 
@@ -218,10 +219,13 @@ module CFPropertyList
     # Format constant for XML format
     FORMAT_XML = 2
 
+    # Format constant for the old plain format
+    FORMAT_PLAIN = 3
+
     # Format constant for automatic format recognizing
     FORMAT_AUTO = 0
 
-    @@parsers = [Binary, CFPropertyList.xml_parser_interface]
+    @@parsers = [Binary, CFPropertyList.xml_parser_interface, PlainParser]
 
     # Path of PropertyList
     attr_accessor :filename
@@ -271,6 +275,12 @@ module CFPropertyList
       load(filename,List::FORMAT_BINARY)
     end
 
+    # read a plain plist file
+    # filename = nil:: The filename to read from; if nil, read from the file defined by instance variable +filename+
+    def load_plain(filename=nil)
+      load(filename,List::FORMAT_PLAIN)
+    end
+
     # load a plist from a XML string
     # str:: The string containing the plist
     def load_xml_str(str=nil)
@@ -283,6 +293,12 @@ module CFPropertyList
       load_str(str,List::FORMAT_BINARY)
     end
 
+    # load a plist from a plain string
+    # str:: The string containing the plist
+    def load_binary_str(str=nil)
+      load_str(str,List::FORMAT_PLAIN)
+    end
+
     # load a plist from a string
     # str = nil:: The string containing the plist
     # format = nil:: The format of the plist
@@ -292,7 +308,7 @@ module CFPropertyList
 
       @value = {}
       case format
-      when List::FORMAT_BINARY, List::FORMAT_XML then
+      when List::FORMAT_BINARY, List::FORMAT_XML, List::FORMAT_PLAIN then
         prsr = @@parsers[format-1].new
         @value = prsr.load({:data => str})
 
@@ -301,13 +317,19 @@ module CFPropertyList
         version = str[6..7]
 
         prsr = nil
+
         if filetype == "bplist" then
           raise CFFormatError.new("Wrong file version #{version}") unless version == "00"
           prsr = Binary.new
           @format = List::FORMAT_BINARY
         else
-          prsr = CFPropertyList.xml_parser_interface.new
-          @format = List::FORMAT_XML
+          if str =~ /^<(\?xml|!DOCTYPE|plist)/
+            prsr = CFPropertyList.xml_parser_interface.new
+            @format = List::FORMAT_XML
+          else
+            prsr = PlainParser.new
+            @format = List::FORMAT_PLAIN
+          end
         end
 
         @value = prsr.load({:data => str})
@@ -325,7 +347,7 @@ module CFPropertyList
       raise IOError.new("File #{file} not readable!") unless File.readable? file
 
       case format
-      when List::FORMAT_BINARY, List::FORMAT_XML then
+      when List::FORMAT_BINARY, List::FORMAT_XML, List::FORMAT_PLAIN then
         prsr = @@parsers[format-1].new
         @value = prsr.load({:file => file})
 
@@ -341,8 +363,13 @@ module CFPropertyList
           prsr = Binary.new
           @format = List::FORMAT_BINARY
         else
-          prsr = CFPropertyList.xml_parser_interface.new
-          @format = List::FORMAT_XML
+          if str =~ /^<(\?xml|!DOCTYPE|plist)/
+            prsr = CFPropertyList.xml_parser_interface.new
+            @format = List::FORMAT_XML
+          else
+            prsr = PlainParser.new
+            @format = List::FORMAT_PLAIN
+          end
         end
 
         @value = prsr.load({:file => file})

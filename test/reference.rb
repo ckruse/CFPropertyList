@@ -20,4 +20,15 @@ module Reference
     plist = CFPropertyList::List.new(:data => raw_binary(filename))
     CFPropertyList.native_types(plist.value)
   end
+
+  def raw_plain(filename)
+    data = File.new("test/reference/#{filename}.plain.plist").read
+    data.force_encoding('ASCII-8BIT') if data.respond_to?(:force_encoding)
+    data
+  end
+
+  def parsed_plain(filename)
+    plist = CFPropertyList::List.new(:data => raw_plain(filename))
+    CFPropertyList.native_types(plist.value)
+  end
 end

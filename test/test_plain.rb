@@ -58,4 +58,53 @@ class TestPlain < Minitest::Test
   def test_binary
     assert_equal "\x00\n", parsed_plain('binary')
   end
+
+  def test_serialize
+    plist = CFPropertyList::List.new
+
+    plist.value = CFPropertyList.guess("data")
+    assert_equal raw_plain("string_ascii_short"), plist.to_str(CFPropertyList::List::FORMAT_PLAIN)
+
+    plist.value = CFPropertyList.guess("datadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadatadata")
+    assert_equal raw_plain("string_ascii_long"), plist.to_str(CFPropertyList::List::FORMAT_PLAIN)
+
+    plist.value = CFPropertyList.guess(-1)
+    assert_equal raw_plain("int_signed"), plist.to_str(CFPropertyList::List::FORMAT_PLAIN)
+
+    plist.value = CFPropertyList.guess(4294967296)
+    assert_equal raw_plain("int_8_bytes"), plist.to_str(CFPropertyList::List::FORMAT_PLAIN)
+
+    plist.value = CFPropertyList.guess(65536)
+    assert_equal raw_plain("int_4_bytes"), plist.to_str(CFPropertyList::List::FORMAT_PLAIN)
+
+    plist.value = CFPropertyList.guess(1)
+    assert_equal raw_plain("int_1_byte"), plist.to_str(CFPropertyList::List::FORMAT_PLAIN)
+
+    plist.value = CFPropertyList.guess(["object"])
+    assert_equal raw_plain("array"), plist.to_str(CFPropertyList::List::FORMAT_PLAIN)
+
+    plist.value = CFPropertyList.guess(["val1", "val 2", 123, {"a b" => "b c", "c" => "d"}])
+    assert_equal raw_plain("array1"), plist.to_str(CFPropertyList::List::FORMAT_PLAIN)
+
+    plist.value = CFPropertyList.guess({ "a" => "b" })
+    assert_equal raw_plain("dictionary"), plist.to_str(CFPropertyList::List::FORMAT_PLAIN)
+
+    plist.value = CFPropertyList.guess({ "a" => "b", "complex key" => { "a" => "b", "d" => [ "de fg" ]} })
+    assert_equal raw_plain("dictionary1"), plist.to_str(CFPropertyList::List::FORMAT_PLAIN)
+
+    plist.value = CFPropertyList.guess(true)
+    assert_equal raw_plain("true"), plist.to_str(CFPropertyList::List::FORMAT_PLAIN)
+
+    plist.value = CFPropertyList.guess(false)
+    assert_equal raw_plain("false"), plist.to_str(CFPropertyList::List::FORMAT_PLAIN)
+
+    plist.value = CFPropertyList.guess([1.32, -1.32])
+    assert_equal raw_plain("real"), plist.to_str(CFPropertyList::List::FORMAT_PLAIN)
+
+    plist.value = CFPropertyList.guess(Time.new(2015, 1, 2, 13, 10, 0, "+02:00"))
+    assert_equal raw_plain("date"), plist.to_str(CFPropertyList::List::FORMAT_PLAIN)
+
+    plist.value = CFPropertyList.guess(CFPropertyList::Blob.new("\x00\n"))
+    assert_equal raw_plain("binary"), plist.to_str(CFPropertyList::List::FORMAT_PLAIN)
+  end
 end

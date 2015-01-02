@@ -385,7 +385,9 @@ module CFPropertyList
       format = @format if format.nil?
       file = @filename if file.nil?
 
-      raise CFFormatError.new("Format #{format} not supported, use List::FORMAT_BINARY or List::FORMAT_XML") if format != FORMAT_BINARY && format != FORMAT_XML
+      if format != FORMAT_BINARY && format != FORMAT_XML && format != FORMAT_PLAIN
+        raise CFFormatError.new("Format #{format} not supported, use List::FORMAT_BINARY or List::FORMAT_XML")
+      end
 
       if(!File.exists?(file)) then
         raise IOError.new("File #{file} not writable!") unless File.writable?(File.dirname(file))
@@ -410,7 +412,9 @@ module CFPropertyList
     # format = List::FORMAT_BINARY:: The format to save the plist
     # opts={}:: Pass parser options
     def to_str(format=List::FORMAT_BINARY,opts={})
-      raise CFFormatError.new("Format #{format} not supported, use List::FORMAT_BINARY or List::FORMAT_XML") if format != FORMAT_BINARY && format != FORMAT_XML
+      if format != FORMAT_BINARY && format != FORMAT_XML && format != FORMAT_PLAIN
+        raise CFFormatError.new("Format #{format} not supported, use List::FORMAT_BINARY or List::FORMAT_XML")
+      end
 
       prsr = @@parsers[format-1].new
 

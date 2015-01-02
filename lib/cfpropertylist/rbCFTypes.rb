@@ -37,7 +37,11 @@ module CFPropertyList
     def to_xml(parser)
     end
 
-    def to_binary(bplist) end
+    def to_binary(bplist)
+    end
+
+    def to_plain(plist)
+    end
   end
 
   # This class holds string values, both, UTF-8 and UTF-16BE
@@ -54,6 +58,44 @@ module CFPropertyList
     def to_binary(bplist)
       bplist.string_to_binary(@value);
     end
+
+    def to_plain(plist)
+      if @value =~ /^\w+$/
+        @value
+      else
+        quoted
+      end
+    end
+
+    def quoted
+      str = '"'
+      @value.each_char do |c|
+        str << case c
+        when '"'
+          '\\"'
+        when '\\'
+          '\\'
+        when "\a"
+          "\\a"
+        when "\b"
+          "\\b"
+        when "\f"
+          "\\f"
+        when "\n"
+          "\n"
+        when "\v"
+          "\\v"
+        when "\r"
+          "\\r"
+        when "\t"
+          "\\t"
+        else
+          c
+        end
+      end
+
+      str << '"'
+    end
   end
 
   # This class holds integer/fixnum values
@@ -69,6 +111,10 @@ module CFPropertyList
     def to_binary(bplist)
       bplist.num_to_binary(self)
     end
+
+    def to_plain(plist)
+      @value.to_s
+    end
   end
 
   # This class holds float values
@@ -83,6 +129,10 @@ module CFPropertyList
     # convert to binary
     def to_binary(bplist)
       bplist.num_to_binary(self)
+    end
+
+    def to_plain(plist)
+      @value.to_s
     end
   end
 
@@ -151,6 +201,10 @@ module CFPropertyList
     def to_binary(bplist)
       bplist.date_to_binary(@value)
     end
+
+    def to_plain(plist)
+      @value.strftime("%Y-%m-%d %H:%M:%S %z")
+    end
   end
 
   # This class contains a boolean value
@@ -163,6 +217,10 @@ module CFPropertyList
     # convert to binary
     def to_binary(bplist)
       bplist.bool_to_binary(@value);
+    end
+
+    def to_plain(plist)
+      @value ? "true" : "false"
     end
   end
 
@@ -203,6 +261,10 @@ module CFPropertyList
     def to_binary(bplist)
       bplist.data_to_binary(decoded_value())
     end
+
+    def to_plain(plist)
+      "<" + decoded_value.unpack("H*").join("") + ">"
+    end
   end
 
   # This class contains an array of values
@@ -224,6 +286,11 @@ module CFPropertyList
     # convert to binary
     def to_binary(bplist)
       bplist.array_to_binary(self)
+    end
+
+    def to_plain(plist)
+      ary = @value.map { |v| v.to_plain(plist) }
+      "( " + ary.join(", ") + " )"
     end
   end
 
@@ -249,6 +316,18 @@ module CFPropertyList
     def to_binary(bplist)
       bplist.dict_to_binary(self)
     end
+
+    def to_plain(plist)
+      str = "{ "
+      cfstr = CFString.new()
+
+      @value.each do |k,v|
+        cfstr.value = k
+        str << cfstr.to_plain(plist) + " = " + v.to_plain(plist) + "; "
+      end
+
+      str << "}"
+    end
   end
 
   class CFUid < CFType
@@ -259,6 +338,10 @@ module CFPropertyList
     # convert to binary
     def to_binary(bplist)
       bplist.uid_to_binary(@value)
+    end
+
+    def to_plain(plist)
+      CFDictionary.new({'CF$UID' => CFInteger.new(@value)}).to_plain(plist)
     end
   end
 end

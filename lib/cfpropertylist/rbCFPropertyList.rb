@@ -140,7 +140,8 @@ module CFPropertyList
     when String, Symbol
       CFString.new(object.to_s)
 
-    when Time, DateTime, Date  then CFDate.new(object)
+    when Time, DateTime, Date
+      CFDate.new(object)
 
     when Array, Enumerator, Enumerable::Enumerator
       ary = Array.new

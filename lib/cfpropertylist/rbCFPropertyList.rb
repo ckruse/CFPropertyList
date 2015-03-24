@@ -137,8 +137,8 @@ module CFPropertyList
     when Blob
       CFData.new(object, CFData::DATA_RAW)
 
-    when String
-      CFString.new(object)
+    when String, Symbol
+      CFString.new(object.to_s)
 
     when Time, DateTime, Date  then CFDate.new(object)
 

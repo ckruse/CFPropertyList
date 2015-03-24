@@ -140,4 +140,16 @@ XML
     assert_equal parsed_xml('string_binary_data').class, CFPropertyList::Blob
   end
 
+  def test_symbol_converts_to_string
+    obj = CFPropertyList.guess(:test)
+    assert obj.is_a?(CFPropertyList::CFString)
+
+    obj = CFPropertyList.guess([:test])
+    assert obj.value.first.is_a?(CFPropertyList::CFString)
+
+    obj = CFPropertyList.guess({:test => :value})
+    assert obj.value.values.first.is_a?(CFPropertyList::CFString)
+    assert obj.value.keys.first.is_a?(String)
+  end
+
 end

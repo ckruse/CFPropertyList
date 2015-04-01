@@ -123,6 +123,8 @@ module CFPropertyList
         "\r"
       when 't'
         "\t"
+      when 'U'
+        @doc.scan(/.{4}/).hex.chr('utf-8')
       end
     end
 

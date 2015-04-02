@@ -12,7 +12,7 @@
 # License::   MIT License
 
 # general plist error. All exceptions thrown are derived from this class.
-class CFPlistError < Exception
+class CFPlistError < StandardError
 end
 
 # Exception thrown when format errors occur

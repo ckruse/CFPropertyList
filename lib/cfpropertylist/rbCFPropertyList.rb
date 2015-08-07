@@ -360,7 +360,7 @@ module CFPropertyList
 
         prsr = nil
         if filetype == "bplist" then
-          raise CFFormatError.new("Wong file version #{version}") unless version == "00"
+          raise CFFormatError.new("Wrong file version #{version}") unless version == "00"
           prsr = Binary.new
           @format = List::FORMAT_BINARY
         else

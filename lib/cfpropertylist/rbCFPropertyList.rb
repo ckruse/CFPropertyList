@@ -296,7 +296,7 @@ module CFPropertyList
 
     # load a plist from a plain string
     # str:: The string containing the plist
-    def load_binary_str(str=nil)
+    def load_plain_str(str=nil)
       load_str(str,List::FORMAT_PLAIN)
     end
 

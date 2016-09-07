@@ -40,6 +40,7 @@ module CFPropertyList
       formatter = if opts[:formatted] then
         f = REXML::Formatters::Pretty.new(2)
         f.compact = true
+        f.width = 99999
         f
       else
         REXML::Formatters::Default.new

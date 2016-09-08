@@ -96,7 +96,8 @@ end
 
 begin
   require dirname + '/rbLibXMLParser.rb'
-  temp = LibXML::XML::Parser::Options::NOBLANKS; # check if we have a version with parser options
+  temp = LibXML::XML::Parser::Options::NOBLANKS # check if we have a version with parser options
+  temp = false # avoid a warning
   try_nokogiri = false
   CFPropertyList.xml_parser_interface = CFPropertyList::LibXMLParser
 rescue LoadError, NameError
@@ -107,7 +108,7 @@ if try_nokogiri then
   begin
     require dirname + '/rbNokogiriParser.rb'
     CFPropertyList.xml_parser_interface = CFPropertyList::NokogiriXMLParser
-  rescue LoadError => e
+  rescue LoadError
     require dirname + '/rbREXMLParser.rb'
     CFPropertyList.xml_parser_interface = CFPropertyList::ReXMLParser
   end

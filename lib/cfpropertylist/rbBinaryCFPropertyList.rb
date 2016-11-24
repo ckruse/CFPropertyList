@@ -166,9 +166,9 @@ module CFPropertyList
         when 1 # 2 byte float? must be an error
           raise CFFormatError.new("got #{length+1} byte float, must be an error!")
         when 2 then
-          buff.reverse.unpack("f")[0]
+          buff.reverse.unpack("g")[0]
         when 3 then
-          buff.reverse.unpack("d")[0]
+          buff.reverse.unpack("G")[0]
         else
           fail "unexpected length: #{length}"
         end
@@ -190,9 +190,9 @@ module CFPropertyList
         when 1 then # 2 byte CFDate is an error
           raise CFFormatError.new("#{length+1} byte CFDate, error")
         when 2 then
-          buff.reverse.unpack("f")[0]
+          buff.reverse.unpack("g")[0]
         when 3 then
-          buff.reverse.unpack("d")[0]
+          buff.reverse.unpack("G")[0]
         end,
         CFDate::TIMESTAMP_APPLE
       )
@@ -498,7 +498,7 @@ module CFPropertyList
 
     # Codes a real value to binary format
     def real_to_binary(val)
-      Binary.type_bytes(0b0010,3) << [val].pack("d").reverse
+      Binary.type_bytes(0b0010,3) << [val].pack("G").reverse
     end
 
     # Converts a numeric value to binary and adds it to the object table
@@ -545,7 +545,7 @@ module CFPropertyList
       val = val.getutc.to_f - CFDate::DATE_DIFF_APPLE_UNIX # CFDate is a real, number of seconds since 01/01/2001 00:00:00 GMT
 
       @object_table[@written_object_count] =
-        (Binary.type_bytes(0b0011, 3) << [val].pack("d").reverse)
+        (Binary.type_bytes(0b0011, 3) << [val].pack("G").reverse)
 
       @written_object_count += 1
       @written_object_count - 1

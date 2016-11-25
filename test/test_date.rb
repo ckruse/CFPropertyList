@@ -45,12 +45,4 @@ class TestDate < Minitest::Test
     assert_equal raw_xml('date_from_datetime'), plist.to_str(CFPropertyList::List::FORMAT_XML, :formatted => true)
     assert_equal raw_binary('date_from_datetime'), plist.to_str(CFPropertyList::List::FORMAT_BINARY)
   end
-
-  # TODO
-  def test_write_date_from_datetime_object
-    #plist = CFPropertyList::List.new
-    #plist.value = CFPropertyList.guess(DateTime.new(2011, 5, 12, 5, 28, 1, '+0200'))
-    #assert_equal raw_xml('date_from_datetime'), plist.to_str(CFPropertyList::List::FORMAT_XML, :formatted => true)
-    #assert_equal raw_binary('date_from_datetime'), plist.to_str(CFPropertyList::List::FORMAT_BINARY)
-  end
 end

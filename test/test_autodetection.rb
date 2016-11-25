@@ -33,7 +33,7 @@ class TestUid < Minitest::Test
     assert_equal [ "object" ], CFPropertyList.native_types(plist.value)
   end
 
-  def test_auto_detect_binary
+  def test_auto_detect_binary_in_string
     plist = CFPropertyList::List.new(:data => IO.read("test/reference/array.plist"))
     assert_equal [ "object" ], CFPropertyList.native_types(plist.value)
   end

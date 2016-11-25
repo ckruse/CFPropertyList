@@ -30,8 +30,8 @@ class TestInteger < Minitest::Test
   end
 
   def test_read_signed
-    assert_equal -1, parsed_xml('int_signed')
-    assert_equal -1, parsed_binary('int_signed')
+    assert_equal(-1, parsed_xml('int_signed'))
+    assert_equal(-1, parsed_binary('int_signed'))
   end
 
   def test_write_1_byte

@@ -25,7 +25,7 @@ class TestData < Minitest::Test
     assert_equal 'data' * 128, parsed_binary('data_long_2_bytes')
   end
 
-  def test_read_data_long_2_bytes
+  def test_read_data_longer_2_bytes
     assert_equal 'data' * 16384, parsed_xml('data_long_4_bytes')
     assert_equal 'data' * 16384, parsed_binary('data_long_4_bytes')
   end

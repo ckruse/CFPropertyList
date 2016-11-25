@@ -9,7 +9,7 @@ require 'reference'
 class TestArray < Minitest::Test
   include Reference
 
-  def test_read_array
+  def test_read_array3
     assert_equal [ ], parsed_xml('array3')
   end
 

@@ -18,10 +18,10 @@ module CFPropertyList
   end
 
   ##
-  # UidFixnum is intended to distinguish between a Ruby Fixnum
+  # UidFixnum is intended to distinguish between a Ruby Integer
   # instance that should be converted to a CFInteger/CFReal type and a
-  # Ruby Fixnum instance that should be converted to a CFUid type.
-  class UidFixnum < Fixnum
+  # Ruby Integer instance that should be converted to a CFUid type.
+  class UidFixnum < Integer
   end
 
   # This class defines the base class for all CFType classes

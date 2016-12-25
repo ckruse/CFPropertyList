@@ -130,7 +130,7 @@ module CFPropertyList
   #  cftypes = CFPropertyList.guess(x,:convert_unknown_to_string => true,:converter_method => :to_hash, :converter_with_opts => true)
   def guess(object, options = {})
     case object
-    when Fixnum, Integer       then CFInteger.new(object)
+    when Integer               then CFInteger.new(object)
     when UidFixnum             then CFUid.new(object)
     when Float                 then CFReal.new(object)
     when TrueClass, FalseClass then CFBoolean.new(object)

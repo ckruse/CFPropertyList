@@ -3,42 +3,71 @@ class to read, manipulate and write both XML and binary property list
 files (plist(5)) as defined by Apple. Have a look at CFPropertyList::List
 for more documentation.
 
-== Installation
+# Installation
 
 You could either use ruby gems and install it via
-
-  gem install CFPropertyList
+    
+```bash
+gem install CFPropertyList
+```
 
 or you could clone this repository and place it somewhere in your load path.
 
-== Example
-  require 'cfpropertylist'
+Example:
+```ruby
+require 'cfpropertylist'
+```
 
-  # create a arbitrary data structure of basic data types
-  data = {
-    'name' => 'John Doe',
-    'missing' => true,
-    'last_seen' => Time.now,
-    'friends' => ['Jane Doe','Julian Doe'],
-    'likes' => {
-      'me' => false
-    }
+If you're using Rails, you can add it into your Gemfile
+
+```ruby
+gem 'CFPropertyList'
+```
+
+# Usage
+
+  ## create a arbitrary data structure of basic data types
+  
+```ruby
+data = {
+  'name' => 'John Doe',
+  'missing' => true,
+  'last_seen' => Time.now,
+  'friends' => ['Jane Doe','Julian Doe'],
+  'likes' => {
+    'me' => false
   }
+}
+```
 
-  # create CFPropertyList::List object
-  plist = CFPropertyList::List.new
+## create CFPropertyList::List object
+  
+```ruby
+plist = CFPropertyList::List.new
+```
 
-  # call CFPropertyList.guess() to create corresponding CFType values
-  plist.value = CFPropertyList.guess(data)
+## call CFPropertyList.guess() to create corresponding CFType values
 
-  # write plist to file
-  plist.save("example.plist", CFPropertyList::List::FORMAT_BINARY)
+```ruby  
+plist.value = CFPropertyList.guess(data)
+```
 
-  # … later, read it again
-  plist = CFPropertyList::List.new(:file => "example.plist")
-  data = CFPropertyList.native_types(plist.value)
+## write plist to file
+```ruby
+plist.save("example.plist", CFPropertyList::List::FORMAT_BINARY)
+```
 
-Author::    Christian Kruse (mailto:cjk@wwwtech.de)
-Copyright:: Copyright (c) 2010
-License::   MIT License
+## … later, read it again
+```ruby  
+plist = CFPropertyList::List.new(:file => "example.plist")
+data = CFPropertyList.native_types(plist.value)
+```
+
+# Author and license
+
+**Author:**    Christian Kruse (mailto:cjk@wwwtech.de)
+
+**Copyright:** Copyright (c) 2010
+
+**License:**   MIT License
 

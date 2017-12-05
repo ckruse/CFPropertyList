@@ -20,6 +20,10 @@ class TestPlain < Minitest::Test
     assert_equal(-1, parsed_plain("int_signed"))
   end
 
+  def test_int_8_bytes_unsigned
+    assert_equal(9223372036854775808, parsed_plain("int_8_bytes_unsigned"))
+  end
+
   def test_int_8_bytes
     assert_equal(4294967296, parsed_plain("int_8_bytes"))
   end
@@ -70,6 +74,9 @@ class TestPlain < Minitest::Test
 
     plist.value = CFPropertyList.guess(-1)
     assert_equal raw_plain("int_signed"), plist.to_str(CFPropertyList::List::FORMAT_PLAIN)
+
+    plist.value = CFPropertyList.guess(9223372036854775808)
+    assert_equal raw_plain("int_8_bytes_unsigned"), plist.to_str(CFPropertyList::List::FORMAT_PLAIN)
 
     plist.value = CFPropertyList.guess(4294967296)
     assert_equal raw_plain("int_8_bytes"), plist.to_str(CFPropertyList::List::FORMAT_PLAIN)

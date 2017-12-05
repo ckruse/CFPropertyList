@@ -473,8 +473,9 @@ module CFPropertyList
       nbytes = 0
       nbytes = 1  if value > 0xFF # 1 byte unsigned integer
       nbytes += 1 if value > 0xFFFF # 4 byte unsigned integer
-      nbytes += 2 if value > 0xFFFFFFFF # 8 byte unsigned integer, stored in lower half of 16 bytes
-      nbytes = 3  if value < 0 # 8 byte integer, since signed
+      nbytes += 1 if value > 0xFFFFFFFF # 8 byte unsigned integer
+      nbytes += 1 if value > 0x7FFFFFFFFFFFFFFF # 8 byte unsigned integer, stored in lower half of 16 bytes
+      nbytes = 3  if value < 0 # signed integers always stored in 8 bytes
 
       Binary.type_bytes(0b0001, nbytes) <<
         if nbytes < 4

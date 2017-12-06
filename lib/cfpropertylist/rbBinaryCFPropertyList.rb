@@ -123,8 +123,8 @@ module CFPropertyList
 
     # read a binary int value
     def read_binary_int(fname,fd,length)
-      if length > 3
-        raise CFFormatError.new("Integer greater than 8 bytes: #{length}")
+      if length > 4
+        raise CFFormatError.new("Integer greater than 16 bytes: #{length}")
       end
 
       nbytes = 1 << length
@@ -136,17 +136,12 @@ module CFPropertyList
         when 0 then buff.unpack("C")[0]
         when 1 then buff.unpack("n")[0]
         when 2 then buff.unpack("N")[0]
-        when 3
-          hiword,loword = buff.unpack("NN")
-          if (hiword & 0x80000000) != 0
-            # 8 byte integers are always signed, and are negative when bit 63 is
-            # set. Decoding into either a Fixnum or Bignum is tricky, however,
-            # because the size of a Fixnum varies among systems, and Ruby
-            # doesn't consider the number to be negative, and won't sign extend.
-            -(2**63 - ((hiword & 0x7fffffff) << 32 | loword))
-          else
-            hiword << 32 | loword
-          end
+        # 8 byte integers are always signed
+        when 3 then buff.unpack("q>")[0]
+        # 16 byte integers are used to represent unsigned 8 byte integers
+        # where the unsigned value is stored in the lower 8 bytes and the
+        # upper 8 bytes are unused.
+        when 4 then buff.unpack("Q>Q>")[1]
         end
       )
     end
@@ -474,25 +469,19 @@ module CFPropertyList
 
     # Codes an integer to binary format
     def int_to_binary(value)
+      # Note: nbytes is actually an exponent.  number of bytes = 2**nbytes.
       nbytes = 0
-      nbytes = 1  if value > 0xFF # 1 byte integer
-      nbytes += 1 if value > 0xFFFF # 4 byte integer
-      nbytes += 1 if value > 0xFFFFFFFF # 8 byte integer
-      nbytes = 3  if value < 0 # 8 byte integer, since signed
+      nbytes = 1  if value > 0xFF # 1 byte unsigned integer
+      nbytes += 1 if value > 0xFFFF # 4 byte unsigned integer
+      nbytes += 1 if value > 0xFFFFFFFF # 8 byte unsigned integer
+      nbytes += 1 if value > 0x7FFFFFFFFFFFFFFF # 8 byte unsigned integer, stored in lower half of 16 bytes
+      nbytes = 3  if value < 0 # signed integers always stored in 8 bytes
 
       Binary.type_bytes(0b0001, nbytes) <<
-        if nbytes < 3
-          [value].pack(
-            if nbytes == 0    then "C"
-            elsif nbytes == 1 then "n"
-            else "N"
-            end
-          )
-        else
-          # 64 bit signed integer; we need the higher and the lower 32 bit of the value
-          high_word = value >> 32
-          low_word = value & 0xFFFFFFFF
-          [high_word,low_word].pack("NN")
+        if nbytes < 4
+          [value].pack(["C", "n", "N", "q>"][nbytes])
+        else # nbytes == 4
+          [0,value].pack("Q>Q>")
         end
     end
 

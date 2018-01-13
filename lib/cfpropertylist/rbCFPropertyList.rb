@@ -72,27 +72,11 @@ module CFPropertyList
   end
 end
 
-class String
-  unless("".respond_to?(:bytesize)) then
-    def bytesize
-      self.length
-    end
-  end
-end
-
 dirname = File.dirname(__FILE__)
 require dirname + '/rbCFPlistError.rb'
 require dirname + '/rbCFTypes.rb'
 require dirname + '/rbBinaryCFPropertyList.rb'
 require dirname + '/rbPlainCFPropertyList.rb'
-
-require 'iconv' unless "".respond_to?("encode")
-
-# ensure that the module and class exist
-module Enumerable
-  class Enumerator
-  end
-end
 
 begin
   require dirname + '/rbLibXMLParser.rb'
@@ -144,7 +128,7 @@ module CFPropertyList
     when Time, DateTime, Date
       CFDate.new(object)
 
-    when Array, Enumerator, Enumerable::Enumerator
+    when Array, Enumerator
       ary = Array.new
       object.each do |o|
         ary.push CFPropertyList.guess(o, options)

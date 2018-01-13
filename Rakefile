@@ -14,20 +14,20 @@ spec = Gem::Specification.new do |s|
   s.platform = Gem::Platform::RUBY
   s.summary = "Read, write and manipulate both binary and XML property lists as defined by apple"
   s.description = "This is a module to read, write and manipulate both binary and XML property lists as defined by apple."
-  s.files = FileList["lib/**/*"].to_a + ['LICENSE', 'README', 'THANKS']
+  s.files = FileList["lib/**/*"].to_a + ['LICENSE', 'README.md', 'THANKS', 'README.rdoc']
   s.require_path = "lib"
   #s.autorequire = "name"
   #s.test_files = FileList["{test}/**/*test.rb"].to_a
   s.has_rdoc = true
-  s.extra_rdoc_files = ["README"]
+  s.extra_rdoc_files = ["README.rdoc"]
   s.add_development_dependency("rake",">=0.7.0")
 end
 
 desc 'Generate RDoc documentation for the CFPropertyList module.'
 Rake::RDocTask.new do |rdoc|
-  files = ['README', 'LICENSE', 'lib/*.rb', 'lib/**/*.rb']
+  files = ['README.rdoc', 'LICENSE', 'lib/*.rb', 'lib/**/*.rb']
   rdoc.rdoc_files.add(files)
-  rdoc.main = 'README'
+  rdoc.main = 'README.rdoc'
   rdoc.title = 'CFPropertyList RDoc'
   rdoc.rdoc_dir = 'doc'
   rdoc.options << '--line-numbers' << '--inline-source' << '-c utf8'

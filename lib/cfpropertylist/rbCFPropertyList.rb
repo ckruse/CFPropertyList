@@ -197,7 +197,7 @@ module CFPropertyList
 
   module_function :guess, :native_types
 
-  # Class representing a CFPropertyList. Instanciate with #new
+  # Class representing a CFPropertyList. Instantiate with #new
   class List
     # Format constant for binary format
     FORMAT_BINARY = 1

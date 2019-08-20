@@ -5,6 +5,7 @@ require 'nokogiri'
 module CFPropertyList
   # XML parser
   class NokogiriXMLParser < ParserInterface
+    PARSER_OPTIONS = Nokogiri::XML::ParseOptions::NOBLANKS|Nokogiri::XML::ParseOptions::NOENT|Nokogiri::XML::ParseOptions::NONET
     # read a XML file
     # opts::
     # * :file - The filename of the file to load
@@ -12,9 +13,9 @@ module CFPropertyList
     def load(opts)
       doc = nil
       if(opts.has_key?(:file)) then
-        File.open(opts[:file], "rb") { |fd| doc = Nokogiri::XML::Document.parse(fd, nil, nil, Nokogiri::XML::ParseOptions::NOBLANKS|Nokogiri::XML::ParseOptions::NOENT) }
+        File.open(opts[:file], "rb") { |fd| doc = Nokogiri::XML::Document.parse(fd, nil, nil, PARSER_OPTIONS) }
       else
-        doc = Nokogiri::XML::Document.parse(opts[:data], nil, nil, Nokogiri::XML::ParseOptions::NOBLANKS|Nokogiri::XML::ParseOptions::NOENT)
+        doc = Nokogiri::XML::Document.parse(opts[:data], nil, nil, PARSER_OPTIONS)
       end
 
       if doc

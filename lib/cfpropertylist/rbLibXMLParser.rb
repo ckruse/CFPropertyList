@@ -5,6 +5,7 @@ require 'libxml'
 module CFPropertyList
   # XML parser
   class LibXMLParser < XMLParserInterface
+    PARSER_OPTIONS = LibXML::XML::Parser::Options::NOBLANKS|LibXML::XML::Parser::Options::NOENT|LibXML::XML::Parser::Options::NONET
     # read a XML file
     # opts::
     # * :file - The filename of the file to load
@@ -13,9 +14,9 @@ module CFPropertyList
       doc = nil
 
       if(opts.has_key?(:file)) then
-        doc = LibXML::XML::Document.file(opts[:file],:options => LibXML::XML::Parser::Options::NOBLANKS|LibXML::XML::Parser::Options::NOENT)
+        doc = LibXML::XML::Document.file(opts[:file],:options => PARSER_OPTIONS)
       else
-        doc = LibXML::XML::Document.string(opts[:data],:options => LibXML::XML::Parser::Options::NOBLANKS|LibXML::XML::Parser::Options::NOENT)
+        doc = LibXML::XML::Document.string(opts[:data],:options => PARSER_OPTIONS)
       end
 
       if doc

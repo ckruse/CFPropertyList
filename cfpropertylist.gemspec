@@ -14,5 +14,9 @@ Gem::Specification.new do |s|
   #s.test_files = FileList["{test}/**/*test.rb"].to_a
   s.has_rdoc = true
   s.extra_rdoc_files = ["README.rdoc"]
+  s.add_runtime_dependency("libxml-ruby")
+  s.add_runtime_dependency("nokogiri")
+  s.add_runtime_dependency("rexml") # required after ruby 3
+  s.add_development_dependency("minitest")
   s.add_development_dependency("rake",">=0.7.0")
 end

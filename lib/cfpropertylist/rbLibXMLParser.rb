@@ -5,6 +5,7 @@ require 'libxml'
 module CFPropertyList
   # XML parser
   class LibXMLParser < XMLParserInterface
+    LibXML::XML::Error.set_handler(&LibXML::XML::Error::QUIET_HANDLER)
     PARSER_OPTIONS = LibXML::XML::Parser::Options::NOBLANKS|LibXML::XML::Parser::Options::NONET
     # read a XML file
     # opts::

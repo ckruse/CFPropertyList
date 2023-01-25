@@ -375,7 +375,7 @@ module CFPropertyList
         raise CFFormatError.new("Format #{format} not supported, use List::FORMAT_BINARY or List::FORMAT_XML")
       end
 
-      if(!File.exists?(file)) then
+      if(!File.exist?(file)) then
         raise IOError.new("File #{file} not writable!") unless File.writable?(File.dirname(file))
       elsif(!File.writable?(file)) then
         raise IOError.new("File #{file} not writable!")

@@ -17,8 +17,10 @@ Gem::Specification.new do |s|
     s.add_runtime_dependency("rexml") # no longer bundled with Ruby 3
   end
 
+  # Some gems will no longer bundled with Ruby >= 3.4
   if Gem::Version::new(RUBY_VERSION) >= Gem::Version::new('3.4.0')
-    s.add_runtime_dependency("nkf") # will no longer bundled with Ruby >= 3.4
+    s.add_runtime_dependency("nkf") 
+    s.add_runtime_dependency("base64")
   end
 
   s.add_development_dependency("libxml-ruby")

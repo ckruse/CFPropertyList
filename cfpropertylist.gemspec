@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
   end
 
   # Some gems will no longer bundled with Ruby >= 3.4
-  if Gem::Version::new(RUBY_VERSION) >= Gem::Version::new('3.4.0')
+  if Gem::Version::new(RUBY_VERSION) >= Gem::Version::new('3.3.0')
     s.add_runtime_dependency("nkf") 
     s.add_runtime_dependency("base64")
   end

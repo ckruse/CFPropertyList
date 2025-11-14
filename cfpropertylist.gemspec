@@ -13,15 +13,13 @@ Gem::Specification.new do |s|
   #s.autorequire = "name"
   #s.test_files = FileList["{test}/**/*test.rb"].to_a
   s.extra_rdoc_files = ["README.rdoc"]
-  if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.0.0')
-    s.add_runtime_dependency("rexml") # no longer bundled with Ruby 3
-  end
 
-  # Some gems will no longer bundled with Ruby >= 3.4
-  if Gem::Version::new(RUBY_VERSION) >= Gem::Version::new('3.3.0')
-    s.add_runtime_dependency("nkf") 
-    s.add_runtime_dependency("base64")
-  end
+  # no longer bundled with Ruby 3
+  s.add_runtime_dependency("rexml")
+
+  # no longer bundled with Ruby >= 3.4
+  s.add_runtime_dependency("nkf")
+  s.add_runtime_dependency("base64")
 
   s.add_development_dependency("libxml-ruby")
   s.add_development_dependency("minitest")

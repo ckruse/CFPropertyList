@@ -39,4 +39,28 @@ class TestBinary < Minitest::Test
       CFPropertyList::Binary.bytes_needed(2**64)
     end
   end
+
+  def test_invalid_offset_size
+    header = "bplist00"
+    object = "\x08"
+    offset_table = "\x00"
+    trailer = [0,0,0,0,0,0, 5, 1, 0,0,0,0, 0,0,0,1, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,9].pack("C*")
+
+    plist = CFPropertyList::List.new
+    assert_raises CFFormatError do
+      plist.load_str(header + object + offset_table + trailer, CFPropertyList::List::FORMAT_BINARY)
+    end
+  end
+
+  def test_offset_table_overflow
+    header = "bplist00"
+    object = "\x08"
+    offset_table = "\x00" * 10
+    trailer = [0,0,0,0,0,0, 1, 1, 0,0,0,0, 0,0,0,20, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,1,0].pack("C*")
+
+    plist = CFPropertyList::List.new
+    assert_raises CFFormatError do
+      plist.load_str(header + object + offset_table + trailer, CFPropertyList::List::FORMAT_BINARY)
+    end
+  end
 end

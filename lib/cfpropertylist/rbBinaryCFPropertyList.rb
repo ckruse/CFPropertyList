@@ -214,28 +214,18 @@ module CFPropertyList
 
     # Convert the given string from one charset to another
     def Binary.charset_convert(str,from,to="UTF-8")
-      return str.dup.force_encoding(from).encode(to) if str.respond_to?("encode")
-      Iconv.conv(to,from,str)
+      str.dup.force_encoding(from).encode(to)
     end
 
     # Count characters considering character set
     def Binary.charset_strlen(str,charset="UTF-8")
-      if str.respond_to?(:encode)
-        size = str.length
-      else
-        utf8_str = Iconv.conv("UTF-8",charset,str)
-        size = utf8_str.scan(/./mu).size
-      end
+      size = str.length
 
       # UTF-16 code units in the range D800-DBFF are the beginning of
       # a surrogate pair, and count as one additional character for
       # length calculation.
       if charset =~ /^UTF-16/
-        if str.respond_to?(:encode)
-          str.bytes.to_a.each_slice(2) { |pair| size += 1 if (0xd8..0xdb).include?(pair[0]) }
-        else
-          str.split('').each_slice(2) { |pair| size += 1 if ("\xd8".."\xdb").include?(pair[0]) }
-        end
+        str.bytes.to_a.each_slice(2) { |pair| size += 1 if (0xd8..0xdb).include?(pair[0]) }
       end
 
       size

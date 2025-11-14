@@ -114,4 +114,28 @@ class TestPlain < Minitest::Test
     plist.value = CFPropertyList.guess(CFPropertyList::Blob.new("\x00\n"))
     assert_equal raw_plain("binary"), plist.to_str(CFPropertyList::List::FORMAT_PLAIN)
   end
+
+  def test_string_with_backslash_roundtrip
+    original = "foo\\bar"
+    plist = CFPropertyList::List.new
+    plist.value = CFPropertyList.guess(original)
+    plain = plist.to_str(CFPropertyList::List::FORMAT_PLAIN)
+
+    reparsed = CFPropertyList::List.new(:data => plain, :format => CFPropertyList::List::FORMAT_PLAIN)
+    result = CFPropertyList.native_types(reparsed.value)
+
+    assert_equal original, result
+  end
+
+  def test_string_with_newline_roundtrip
+    original = "foo\nbar"
+    plist = CFPropertyList::List.new
+    plist.value = CFPropertyList.guess(original)
+    plain = plist.to_str(CFPropertyList::List::FORMAT_PLAIN)
+
+    reparsed = CFPropertyList::List.new(:data => plain, :format => CFPropertyList::List::FORMAT_PLAIN)
+    result = CFPropertyList.native_types(reparsed.value)
+
+    assert_equal original, result
+  end
 end

@@ -31,11 +31,12 @@ module CFPropertyList
       buff = fd.read(32)
 
       offset_size, object_ref_size, number_of_objects, top_object, table_offset = buff.unpack "x6CCx4Nx4Nx4N"
+      raise CFFormatError.new("#{file}: Invalid offset_size #{offset_size}") unless [1, 2, 3, 4].include?(offset_size)
 
       # after that, get the offset table
       fd.seek(table_offset, IO::SEEK_SET)
       coded_offset_table = fd.read(number_of_objects * offset_size)
-      raise CFFormatError.new("#{file}: Format error!") unless coded_offset_table.bytesize == number_of_objects * offset_size
+      raise CFFormatError.new("#{file}: Format error!") unless coded_offset_table && coded_offset_table.bytesize == number_of_objects * offset_size
 
       @count_objects = number_of_objects
 

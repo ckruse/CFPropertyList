@@ -5,6 +5,8 @@ require 'stringio'
 module CFPropertyList
   # Binary PList parser class
   class Binary
+    MAX_DEPTH = 512
+
     # Read a binary plist file
     def load(opts)
       @unique_table = {}
@@ -255,7 +257,7 @@ module CFPropertyList
     end
 
     # Read an binary array value, including contained objects
-    def read_binary_array(fname,fd,length)
+    def read_binary_array(fname,fd,length,depth=0)
       ary = []
 
       # first: read object refs
@@ -265,7 +267,7 @@ module CFPropertyList
 
         # now: read objects
         0.upto(length-1) do |i|
-          object = read_binary_object_at(fname,fd,objects[i])
+          object = read_binary_object_at(fname,fd,objects[i],depth+1)
           ary.push object
         end
       end
@@ -275,7 +277,7 @@ module CFPropertyList
     protected :read_binary_array
 
     # Read a dictionary value, including contained objects
-    def read_binary_dict(fname,fd,length)
+    def read_binary_dict(fname,fd,length,depth=0)
       dict = {}
 
       # first: read keys
@@ -289,8 +291,8 @@ module CFPropertyList
 
         # read real keys and objects
         0.upto(length-1) do |i|
-          key = read_binary_object_at(fname,fd,keys[i])
-          object = read_binary_object_at(fname,fd,objects[i])
+          key = read_binary_object_at(fname,fd,keys[i],depth+1)
+          object = read_binary_object_at(fname,fd,objects[i],depth+1)
           dict[key.value] = object
         end
       end
@@ -301,7 +303,7 @@ module CFPropertyList
 
     # Read an object type byte, decode it and delegate to the correct
     # reader function
-    def read_binary_object(fname,fd)
+    def read_binary_object(fname,fd,depth=0)
       # first: read the marker byte
       buff = fd.read(1)
 
@@ -312,7 +314,7 @@ module CFPropertyList
       object_type = buff[0][0].chr
 
       if(object_type != "0" && object_length == 15) then
-        object_length = read_binary_object(fname,fd)
+        object_length = read_binary_object(fname,fd,depth)
         object_length = object_length.value
       end
 
@@ -334,18 +336,19 @@ module CFPropertyList
       when '8'
         CFUid.new(read_binary_int(fname, fd, object_length).value)
       when 'a' # array
-        read_binary_array(fname,fd,object_length)
+        read_binary_array(fname,fd,object_length,depth)
       when 'd' # dictionary
-        read_binary_dict(fname,fd,object_length)
+        read_binary_dict(fname,fd,object_length,depth)
       end
     end
     protected :read_binary_object
 
     # Read an object type byte at position $pos, decode it and delegate to the correct reader function
-    def read_binary_object_at(fname,fd,pos)
+    def read_binary_object_at(fname,fd,pos,depth=0)
+      raise CFFormatError.new("#{fname}: Maximum depth exceeded") if depth > MAX_DEPTH
       position = @offsets[pos]
       fd.seek(position,IO::SEEK_SET)
-      read_binary_object(fname,fd)
+      read_binary_object(fname,fd,depth)
     end
     protected :read_binary_object_at
 

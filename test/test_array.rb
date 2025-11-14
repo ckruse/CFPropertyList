@@ -45,4 +45,17 @@ class TestArray < Minitest::Test
     assert_equal raw_xml('big_array'), plist.to_str(CFPropertyList::List::FORMAT_XML, :formatted => false)
     assert_equal raw_binary('big_array'), plist.to_str(CFPropertyList::List::FORMAT_BINARY)
   end
+
+  def test_deeply_nested_array_binary
+    nested = "x"
+    2000.times { nested = [nested] }
+
+    plist = CFPropertyList::List.new
+    plist.value = CFPropertyList.guess(nested)
+    binary = plist.to_str(CFPropertyList::List::FORMAT_BINARY)
+
+    assert_raises CFFormatError do
+      CFPropertyList::List.new(:data => binary)
+    end
+  end
 end

@@ -77,4 +77,17 @@ XML
   ensure
     CFPropertyList::List.parsers = orig_parsers
   end
+
+  def test_deeply_nested_dict_binary
+    nested = "x"
+    2000.times { |i| nested = {"k#{i}" => nested} }
+
+    plist = CFPropertyList::List.new
+    plist.value = CFPropertyList.guess(nested)
+    binary = plist.to_str(CFPropertyList::List::FORMAT_BINARY)
+
+    assert_raises CFFormatError do
+      CFPropertyList::List.new(:data => binary)
+    end
+  end
 end

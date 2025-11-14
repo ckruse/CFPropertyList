@@ -14,6 +14,8 @@ Gem::Specification.new do |s|
   #s.test_files = FileList["{test}/**/*test.rb"].to_a
   s.extra_rdoc_files = ["README.rdoc"]
 
+  s.required_ruby_version = Gem::Requirement.new(">= 3.2")
+
   # no longer bundled with Ruby 3
   s.add_runtime_dependency("rexml")
 

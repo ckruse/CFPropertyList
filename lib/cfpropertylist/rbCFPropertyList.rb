@@ -80,8 +80,7 @@ require dirname + '/rbPlainCFPropertyList.rb'
 
 begin
   require dirname + '/rbLibXMLParser.rb'
-  temp = LibXML::XML::Parser::Options::NOBLANKS # check if we have a version with parser options
-  temp = false # avoid a warning
+  _ = LibXML::XML::Parser::Options::NOBLANKS # check if we have a version with parser options
   try_nokogiri = false
   CFPropertyList.xml_parser_interface = CFPropertyList::LibXMLParser
 rescue LoadError, NameError

@@ -60,7 +60,7 @@ module CFPropertyList
     end
 
     def to_plain(plist)
-      if @value =~ /^\w+$/
+      if @value =~ /\A\w+\z/
         @value
       else
         quoted
@@ -74,7 +74,7 @@ module CFPropertyList
         when '"'
           '\\"'
         when '\\'
-          '\\'
+          '\\\\'
         when "\a"
           "\\a"
         when "\b"
@@ -82,7 +82,7 @@ module CFPropertyList
         when "\f"
           "\\f"
         when "\n"
-          "\n"
+          "\\n"
         when "\v"
           "\\v"
         when "\r"

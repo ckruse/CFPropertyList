@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = "CFPropertyList"
-  s.version = "3.0.9"
+  s.version = "4.0.0"
   s.author = "Christian Kruse"
   s.email = "cjk@defunct.ch"
   s.homepage = "https://github.com/ckruse/CFPropertyList"

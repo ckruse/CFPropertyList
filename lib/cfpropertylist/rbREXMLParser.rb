@@ -46,7 +46,7 @@ module CFPropertyList
         REXML::Formatters::Default.new
       end
 
-      str = formatter.write(doc.root, "")
+      str = formatter.write(doc.root, +"")
       str1 = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n" + str + "\n"
       str1.force_encoding('UTF-8') if str1.respond_to?(:force_encoding)
 
@@ -133,7 +133,7 @@ module CFPropertyList
         ret = CFInteger.new(get_value(node).to_i)
       when 'string'
         ret = CFString.new(get_value(node))
-        ret.value = '' if ret.value.nil? # REXML returns nil for empty elements' .text attribute
+        ret.value = +'' if ret.value.nil? # REXML returns nil for empty elements' .text attribute
       when 'data'
         ret = CFData.new(get_value(node))
       when 'date'

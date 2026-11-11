@@ -71,7 +71,7 @@ module CFPropertyList
 
       @offsets = []
 
-      binary_str = "bplist00"
+      binary_str = +"bplist00"
 
       @object_refs = count_object_refs(opts[:root])
 
@@ -204,7 +204,7 @@ module CFPropertyList
     protected :read_binary_data
 
     def read_fd fd, length
-      length > 0 ? fd.read(length) : ""
+      length > 0 ? fd.read(length) : +""
     end
 
     # Read a binary string value

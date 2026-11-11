@@ -129,7 +129,7 @@ module CFPropertyList
     end
 
     def read_quoted
-      str = ''
+      str = +''
 
       while not @doc.scan(/"/)
         if @doc.scan(/\\/)

@@ -19,14 +19,14 @@ class TestString < Minitest::Test
   end
 
   def test_read_string_utf8_short
-    string = "UTF-8 \xe2\x98\xbc"
+    string = +"UTF-8 \xe2\x98\xbc"
     string.force_encoding('UTF-8') if string.respond_to?(:force_encoding)
     assert_equal string, parsed_xml('string_utf8_short')
     assert_equal string, parsed_binary('string_utf8_short')
   end
 
   def test_read_string_utf8_long
-    string = "long UTF-8 data with a 4-byte glyph \xf0\x90\x84\x82"
+    string = +"long UTF-8 data with a 4-byte glyph \xf0\x90\x84\x82"
     string.force_encoding('UTF-8') if string.respond_to?(:force_encoding)
     assert_equal string, parsed_xml('string_utf8_long')
     assert_equal string, parsed_binary('string_utf8_long')
@@ -47,7 +47,7 @@ class TestString < Minitest::Test
   end
 
   def test_write_string_utf8_short
-    string = "UTF-8 \xe2\x98\xbc"
+    string = +"UTF-8 \xe2\x98\xbc"
     string.force_encoding('UTF-8') if string.respond_to?(:force_encoding)
     plist = CFPropertyList::List.new
     plist.value = CFPropertyList.guess(string)
@@ -56,7 +56,7 @@ class TestString < Minitest::Test
   end
 
   def test_write_string_utf8_long
-    string = "long UTF-8 data with a 4-byte glyph \xf0\x90\x84\x82"
+    string = +"long UTF-8 data with a 4-byte glyph \xf0\x90\x84\x82"
     string.force_encoding('UTF-8') if string.respond_to?(:force_encoding)
     plist = CFPropertyList::List.new
     plist.value = CFPropertyList.guess(string)

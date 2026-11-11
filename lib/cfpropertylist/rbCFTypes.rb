@@ -68,7 +68,7 @@ module CFPropertyList
     end
 
     def quoted
-      str = '"'
+      str = +'"'
       @value.each_char do |c|
         str << case c
         when '"'
@@ -318,7 +318,7 @@ module CFPropertyList
     end
 
     def to_plain(plist)
-      str = "{ "
+      str = +"{ "
       cfstr = CFString.new()
 
       @value.each do |k,v|

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-require 'libxml'
+require 'libxml-ruby'
 
 module CFPropertyList
   # XML parser

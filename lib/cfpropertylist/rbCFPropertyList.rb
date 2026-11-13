@@ -167,7 +167,7 @@ module CFPropertyList
   end
 
   # Converts a CFType hiercharchy to native Ruby types
-  def native_types(object,keys_as_symbols=false)
+  def native_types(object,keys_as_symbols=false,converted=nil)
     return if object.nil?
 
     if(object.is_a?(CFDate) || object.is_a?(CFString) || object.is_a?(CFInteger) || object.is_a?(CFReal) || object.is_a?(CFBoolean)) || object.is_a?(CFUid) then
@@ -175,19 +175,26 @@ module CFPropertyList
     elsif(object.is_a?(CFData)) then
       return CFPropertyList::Blob.new(object.decoded_value)
     elsif(object.is_a?(CFArray)) then
-      ary = []
+      # shared arrays and dictionaries are converted only once
+      converted ||= {}.compare_by_identity
+      return converted[object] if converted.has_key?(object)
+
+      ary = converted[object] = []
       object.value.each do
         |v|
-        ary.push CFPropertyList.native_types(v)
+        ary.push CFPropertyList.native_types(v, false, converted)
       end
 
       return ary
     elsif(object.is_a?(CFDictionary)) then
-      hsh = {}
+      converted ||= {}.compare_by_identity
+      return converted[object] if converted.has_key?(object)
+
+      hsh = converted[object] = {}
       object.value.each_pair do
         |k,v|
         k = k.to_sym if keys_as_symbols
-        hsh[k] = CFPropertyList.native_types(v)
+        hsh[k] = CFPropertyList.native_types(v, false, converted)
       end
 
       return hsh

@@ -19,6 +19,11 @@ module CFPropertyList
 
       @offsets = []
 
+      @objects = []
+      @heights = []
+      @read_cost = 0
+      @deepest = 0
+
       fd = nil
       if(opts.has_key?(:file))
         fd = File.open(opts[:file],"rb")
@@ -27,6 +32,9 @@ module CFPropertyList
         fd = StringIO.new(opts[:data],"rb")
         file = "<string>"
       end
+
+      # objects which do not overlap can not cost more than the file size
+      @max_read_cost = fd.size
 
       # first, we read the trailer: 32 byte from the end
       fd.seek(-32,IO::SEEK_END)
@@ -199,7 +207,9 @@ module CFPropertyList
 
     # Read a binary data value
     def read_binary_data(fname,fd,length)
-      CFData.new(read_fd(fd, length), CFData::DATA_RAW)
+      buff = read_fd fd, length
+      add_read_cost(fname,buff.to_s.bytesize)
+      CFData.new(buff, CFData::DATA_RAW)
     end
     protected :read_binary_data
 
@@ -210,6 +220,7 @@ module CFPropertyList
     # Read a binary string value
     def read_binary_string(fname,fd,length)
       buff = read_fd fd, length
+      add_read_cost(fname,buff.to_s.bytesize)
       @unique_table[buff] = true unless @unique_table.has_key?(buff)
       CFString.new(buff)
     end
@@ -240,6 +251,7 @@ module CFPropertyList
       # since a char in UTF-16 can be 16 or 32 bit long, we don't really know
       # how long the string is in bytes
       buff = fd.read(2*length)
+      add_read_cost(fname,buff.bytesize)
 
       @unique_table[buff] = true unless @unique_table.has_key?(buff)
       CFString.new(Binary.charset_convert(buff,"UTF-16BE","UTF-8"))
@@ -346,11 +358,54 @@ module CFPropertyList
     # Read an object type byte at position $pos, decode it and delegate to the correct reader function
     def read_binary_object_at(fname,fd,pos,depth=0)
       raise CFFormatError.new("#{fname}: Maximum depth exceeded") if depth > MAX_DEPTH
+
+      add_read_cost(fname,1)
+
+      # objects are read only once
+      height = @heights[pos]
+      if height
+        raise CFFormatError.new("#{fname}: Circular reference") if height < 0
+        raise CFFormatError.new("#{fname}: Maximum depth exceeded") if depth + height > MAX_DEPTH
+        @deepest = depth + height if depth + height > @deepest
+        return shared_binary_object(@objects[pos])
+      end
+
       position = @offsets[pos]
       fd.seek(position,IO::SEEK_SET)
-      read_binary_object(fname,fd,depth)
+      @heights[pos] = -1
+
+      outer_deepest = @deepest
+      @deepest = depth
+      object = read_binary_object(fname,fd,depth)
+      @objects[pos] = object
+      @heights[pos] = @deepest - depth
+      @deepest = outer_deepest if outer_deepest > @deepest
+
+      object
     end
     protected :read_binary_object_at
+
+    # count object references and bytes of strings and data
+    def add_read_cost(fname,cost)
+      @read_cost += cost
+      raise CFFormatError.new("#{fname}: Objects overlap") if @read_cost > @max_read_cost
+    end
+    protected :add_read_cost
+
+    # arrays and dictionaries are shared, other objects are copied
+    def shared_binary_object(object)
+      case object
+      when CFData
+        CFData.new(object.decoded_value.dup, CFData::DATA_RAW)
+      when CFString, CFDate
+        object.class.new(object.value.dup)
+      when CFArray, CFDictionary
+        object
+      else
+        object.dup
+      end
+    end
+    protected :shared_binary_object
 
     # pack an +int+ of +nbytes+ with size
     def Binary.pack_it_with_size(nbytes,int)

@@ -31,11 +31,13 @@ module CFPropertyList
       # first, we read the trailer: 32 byte from the end
       fd.seek(-32,IO::SEEK_END)
       buff = fd.read(32)
+      @file_size = fd.pos
 
       offset_size, object_ref_size, number_of_objects, top_object, table_offset = buff.unpack "x6CCx4Nx4Nx4N"
       raise CFFormatError.new("#{file}: Invalid offset_size #{offset_size}") unless [1, 2, 3, 4].include?(offset_size)
 
       # after that, get the offset table
+      raise CFFormatError.new("#{file}: Invalid number of objects #{number_of_objects}") if number_of_objects * offset_size > @file_size - table_offset
       fd.seek(table_offset, IO::SEEK_SET)
       coded_offset_table = fd.read(number_of_objects * offset_size)
       raise CFFormatError.new("#{file}: Format error!") unless coded_offset_table && coded_offset_table.bytesize == number_of_objects * offset_size
@@ -314,8 +316,22 @@ module CFPropertyList
       object_type = buff[0][0].chr
 
       if(object_type != "0" && object_length == 15) then
-        object_length = read_binary_object(fname,fd,depth)
-        object_length = object_length.value
+        # the length follows as an integer
+        marker = fd.read(1).to_s.unpack("C")[0]
+        raise CFFormatError.new("#{fname}: Invalid length") unless marker && marker >> 4 == 1
+        object_length = read_binary_int(fname,fd,marker & 0xF).value
+        raise CFFormatError.new("#{fname}: Invalid length") unless object_length.is_a?(Integer)
+
+        # data, strings, arrays and dictionaries can not be longer than the rest of the file
+        nbytes = case object_type
+                 when '4', '5' then object_length
+                 when '6' then object_length * 2
+                 when 'a' then object_length * @object_ref_size
+                 when 'd' then object_length * @object_ref_size * 2
+                 end
+        if nbytes && (nbytes < 0 || nbytes > @file_size - fd.pos)
+          raise CFFormatError.new("#{fname}: Invalid length #{object_length}")
+        end
       end
 
       case object_type
